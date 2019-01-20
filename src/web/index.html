@@ -3,9 +3,46 @@
   <head>
     <meta charset="utf-8">
     <title></title>
-    <link rel="stylesheet" type="text/css" href="css/app.css" />
+    <style type="text/css">
+      .loadingMessage {
+        display: table;
+        position: fixed;
+        z-index: 999999999999999;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #FFF;
+      }
+
+      .loadingMessage > span {
+        display: table-cell;
+        vertical-align: middle;
+        text-align: center;
+        font-family: Arial, sans-serif;
+        font-size: 36px;
+        font-weight: bolder;
+        color: #999;
+        animation: loadingMessageAnimation ease-in-out 1s infinite;
+
+      }
+      @keyframes loadingMessageAnimation {
+        0% {
+          color: #999;
+        }
+        50% {
+          color: #333;
+        }
+        100% {
+          color: #999;
+        }
+      }
+    </style>
   </head>
   <body>
+    <div class="loadingMessage">
+      <span>Cargando...</span>
+    </div>
     <div class="canvasContainer">
       <canvas id="canvas"></canvas>
     </div>
@@ -32,7 +69,7 @@
         <ul id="pointsList"></ul>
       </div>
       <div class="footer">
-        Trabajo para final de Análisis y Diseño de Algoritmos I<br>
+        Trabajo para final de Análisis y Diseño de Algoritmos II<br>
         Universidad Nacional del Centro de la Provincia de Buenos Aires, Argentina<br>
         Desarrollado por Nahuel Dallacamina Ortea<br>
         Noviembre/Diciembre 2018
@@ -42,16 +79,66 @@
       <div></div>
       <span></span>
     </div>
-    <script type="text/javascript" src="third_party/download.js"></script>
     <script type="text/javascript">
-      var Module = {
-        onRuntimeInitialized: function() {
-          let script = document.createElement('script');
-          script.type = "module";
-          script.src = "js/main.js";
-          document.body.appendChild(script);
+      (()=>{
+        window.Module = {
+          onRuntimeInitialized: async function () {
+            loadAppStylesheet()
+                    .then(loadThirdPartyLibraries)
+                    .then(loadMainModule)
+                    .then(loadFinished)
+                    .catch((...params) => {
+                      alert("Error al cargar la aplicación. Para más información ver la consola de desarrollador.");
+                      console.error(...params);
+                    });
+          }
+        };
+
+        function loadAppStylesheet() {
+          return new Promise((resolve, reject) => {
+            let stylesheet = document.createElement('link');
+            stylesheet.rel = "stylesheet";
+            stylesheet.type = "text/css";
+            stylesheet.href = "css/app.css";
+
+            stylesheet.onload = resolve;
+            stylesheet.onerror = reject;
+
+            document.head.appendChild(stylesheet);
+          });
         }
-      };
+
+        function loadThirdPartyLibraries() {
+          return new Promise((resolve, reject) => {
+            let script = document.createElement('script');
+            script.type = "text/javascript";
+            script.src = "third_party/download.js";
+
+            script.onload = resolve;
+            script.onerror = reject;
+
+            document.body.appendChild(script);
+          });
+        }
+
+        function loadMainModule() {
+          return new Promise((resolve, reject) => {
+            let script = document.createElement('script');
+            script.type = "module";
+            script.src = "js/main.js";
+
+            script.onload = resolve;
+            script.onerror = reject;
+
+            document.body.appendChild(script);
+          });
+        }
+
+        function loadFinished() {
+          const loadingMessage = document.querySelector(".loadingMessage");
+          document.body.removeChild(loadingMessage);
+        }
+      })();
     </script>
     <script type="text/javascript" src="wasm/WASMModule.js"></script>
   </body>

@@ -22,7 +22,11 @@
     "http-server": "^0.11.1"
   },
   "electronPackageJSONGenerator": {
-    "exclude": ["scripts", "config", "devDependencies"],
+    "exclude": [
+      "scripts",
+      "config",
+      "devDependencies"
+    ],
     "append": {
       "main": "electron-startup.js"
     }

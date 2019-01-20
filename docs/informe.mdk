@@ -1,0 +1,90 @@
+Title         : Algoritmos Geométricos
+Subtitle      : Análisis y Diseño de Algoritmos I
+Author        : Nahuel Dallacamina Ortea
+Author Note   : Profesora a cargo: DEA. Liliana Favre
+Title Footer  : 2018
+Authors Running: Nahuel Dallacamina Ortea
+Title Note    : Universidad Nacional del Centro de la Provincia de Buenos Aires
+Logo          : False
+Name-Contents : Índice
+Name-Figure   : Figura
+Doc Class     : book
+Locale        : spanish
+Heading Base  : 1
+Toc Depth     : 4
+Package : titlesec
+Package : fancyhdr
+Package : pgfplots
+Package : amsmath
+BlankPageText : Página en blanco intencional
+blankpage {
+  page-break-before: always;
+  page-break-after: always;
+  text-align: center;
+  font-style: oblique;
+}
+@if not tex {
+  blankpage {
+    display: none;  
+  }
+}
+pre,code {
+  font-size: 1.01em;
+}
+Appendix {
+}
+
+<style>
+  * {
+    font-family: "Verdana", "Helvetica", "Arial", sans-serif;
+  }
+</style>
+~ TexRaw
+\let\tempmargin\oddsidemargin
+\let\oddsidemargin\evensidemargin
+\let\evensidemargin\tempmargin
+\reversemarginpar
+  
+\fontfamily{lmss}
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries}{}{0pt}{\Large}
+  
+\fancyhf{}
+\fancyhead[RE]{\leftmark}
+\fancyhead[LO]{\rightmark}
+\fancyhead[LE,RO]{\thepage}
+\renewcommand\headrulewidth{0pt}
+\renewcommand\chaptermark[1]{\markboth{#1}{}} 
+\renewcommand\sectionmark[1]{\markright{#1}}
+~
+
+[TITLE]
+
+~ blankpage
+&blankpagetext;
+~
+
+[TOC]
+[INCLUDE=./Introduccion.mdk]
+[INCLUDE=./Algoritmos.mdk]
+
+~ blankpage
+&blankpagetext;
+~
+
+[INCLUDE=./ImplementacionAlgoritmos.mdk]
+
+# Anexo {#sec-anexo}
+## Tipos de datos abstractos {#sec-anexo-tda}
+[INCLUDE=./anexo/tda/Punto.mdk]
+[INCLUDE=./anexo/tda/Vector.mdk]
+[INCLUDE=./anexo/tda/Segmento.mdk]
+[INCLUDE=./anexo/tda/Lista.mdk]
+[INCLUDE=./anexo/tda/Pila.mdk]
+[INCLUDE=./anexo/tda/RBTree.mdk]
+
+## Bibliografía {#sec-anexo-bibliografia}
+
+- Cormen T. H., Leiserson C. E., Rivest R. L., Stein C. (2009) Introduction to Algorithms, Third Edition. Cambridge, Massachusetts; London, England: The MIT Press.
+
+&pagebreak;

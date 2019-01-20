@@ -1,0 +1,28 @@
+# Introducción {#sec-introduccion}
+
+En el campo de la ciencia de la computación, en la rama de la computación geométrica, se presentan problemas que tienen como entrada una descripción de un conjunto de elementos geométricos, como ser puntos, vectores, segmentos de línea, o puntos de un polígono (usualmente en orden anti-horario). A partir de esta entrada se pide responder a distintas preguntas, de la manera más eficiente posible. Algunas de estas son:
+
+- Dados dos vectores $\vec{a}=(x_1, y_1)$ y $\vec{b}=(x_2, y_2)$, si se sigue el recorrido que forman al ponerlos consecutivamente, ¿se gira a la izquierda, a la derecha o no hay giro?
+- ¿Se intersecan dos segmentos dados?
+- De un conjunto de segmentos, ¿hay intersecciones entre ellos?
+- De un conjunto de puntos, ¿cuál es polígono más chico que los incluye a todos ellos?
+- De un conjunto de puntos, ¿cuáles son los dos más cercanos?
+
+Algunas de estas preguntas tienen lugar en campos muy variados, como ser: generación de gráficos por computadora, robótica, diseño VLSI, diseño asistido por computadora, modelación molecular, metalurgica, manufactura, diseño textil, y estadísticas.
+
+En el campo de las matemáticas, algunos de los problemas mencionados arriba se resuelven facilmente. Por ejemplo, para saber el sentido de giro de dos vectores basta con calcular el ángulo que forman con la fórmula [#eq-angulo-vectores]. Estas fórmulas presentan un inconveniente muy importante al ser evaluadas por una computadora: la precisión de las operaciones es limitada, ya que las implementaciones de las funciones trigonométricas, raíces y división requieren de aritmética de punto flotante.
+
+~ Equation { #eq-angulo-vectores; caption: "Fórmula para obtener el ángulo entre vectores" }
+\cos(\alpha) = \frac{x_1 \cdot x_2 + y_1 \cdot y_2}{\sqrt{x_1^2+y_1^2}\cdot\sqrt{x_2^2+y_2^2}}
+~
+
+En la sección [#sec-algoritmos-geometricos-base] se explica cómo resolver este problema de manera simple, con unos pocos cálculos que involucran únicamente suma, resta y mutiplicación de números enteros. Luego, en las secciones [#sec-algoritmos-geometricos-interseccion], [#sec-algoritmos-geometricos-poligono] y [#sec-algoritmos-geometricos-puntos] se presentan tres problemas geométricos, sus algoritmos solución y análisis de complejidad para ellos. En la sección [#sec-impl-algor], se explica una implementación simple en lenguaje C++ de cada uno de los algoritmos geométricos de la sección [#sec-algoritmos-geometricos].
+<!--
+Los algoritmos implementados se recopilaron en una aplicación de línea de comandos, cuyo uso e implementación se cubren en la sección [#sec-cli].
+-->
+
+Por último pero no menos importante, en la sección [#sec-anexo-tda] del [Anexo][#sec-anexo], se encuentran las especificaciones formales de los Tipos de Datos Abstractos necesarios para la implementación de los algoritmos cubiertos en este trabajo, así como también el análisis de complejidad de sus operaciones como restricción para una implementación eficiente.
+
+Este trabajo fue realizado entre noviembre y diciembre del año 2018 como final para la asignatura Análisis y Diseño de Algoritmos I, perteneciente al primer cuatrimestre del segundo año de la carrera de Ingeniería de Sistemas, en la Facultad de Ciencias Exactas, perteneciente a la [Universidad Nacional del Centro de la Provincia de Buenos Aires], Argentina.
+
+[Universidad Nacional del Centro de la Provincia de Buenos Aires]: https://www.unicen.edu.ar/ "UNICEN"

@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Web Sources" pattern="file[TPFinalAyDAI]:src/web//*" />
+</component>

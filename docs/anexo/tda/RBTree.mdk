@@ -1,0 +1,62 @@
+### RBTree - Árbol de búsqueda {#sec-anexo-tda-tree}
+```
+CLASS Arbus [Elemento: ConOrden]
+BASIC CONSTRUCTORS inicArbus, agregarArbus
+EFFECTIVE
+TYPE Arbus
+OPERATIONS
+  inicArbus: -> Arbus;
+  agregarArbus: Arbus * Elemento -> Arbus;
+  crearArbus: Arbus * Arbus * Elemento -> Arbus;
+  vacioArbus: Arbus -> Boolean;
+  raiz: Arbus (t) -> Elemento
+    pre: not vacioArbus(t);
+  subIzquierdo: Arbus (t) - > Arbus
+    pre: not vacioArbus (t);
+  subDerecho: Arbus (t) -> Arbus
+    pre: not vacioArbus (t);
+  eliminarArbus: Arbus(t) * Elemento (e) -> Arbus
+    pre: not vacioArbus(t);
+AXIOMS b1, b2:Arbus; i, j, k: Nat;
+  agregarArbus(inicArbus, i) =
+      crearArbus(inicArbus(), inicArbus(), i);
+
+  (i==j) => agregarArbus(crearArbus(b1, b2, j), i) =
+      crearArbus(b1, b2, j);
+
+  (i < j) => agregarArbus(crearArbus(b1, b2, j), i) =
+      crearArbus(agregarArbus(b1, i), b2, j);
+
+  (i > j) => agregarArbus(crearArbus(b1, b2, j), i) =
+      crearArbus(b1, agregarArbus(b2, i), j);
+
+  crearArbus(inicArbus(), inicArbus(), i) =
+      agregarArbus(inicArbus(), i);
+
+  crearArbus(inicArbus(), agregarArbus(b2, k), i) =
+      agregarArbus(agregarArbus(b2, k), i);
+
+  crearArbus(agregarArbus(b1, j), inicArbus(), i) =
+      agregarArbus(agregarArbus(b1, j), i);
+
+  crearArbus(agregarArbus(b1, j), agregarArbus(b2, k), i) =
+      agregarArbus(agregarArbus(crearArbus(b1, b2, i), j), k);
+
+  (i==j) => eliminarArbus(agregarArbus(b1, i), j) = b1;
+
+  ((not i==j) and not vacioArbus(b1) ) =>
+      eliminarArbus(agregarArbus(b1, i), j) =
+          agregarArbus(eliminarArbus(b1, j), i);
+
+  ((not i==j) and vacioArbus(b1)) =>
+      eliminarArbus(agregarArbus(b1, i), j) =
+          agregarArbus(inicArbus(), i);
+
+  vacioArbus(inicArbus()) = True;
+
+  vacioArbus(agregarArbus(b1, i)) = False;
+  subIzquierdo(crearArbus(t1, t2, e)) = t1;
+  subDerecho(crearArbus(t1, t2, e)) = t2;
+  raiz(crearArbus(t1, t2, e)) = e;
+END-CLASS
+```

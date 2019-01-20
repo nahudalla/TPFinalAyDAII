@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="css/app.css" />
+  </head>
+  <body>
+    <div class="canvasContainer">
+      <canvas id="canvas"></canvas>
+    </div>
+    <div class="sidebar">
+      <div class="header">Algoritmos</div>
+      <div class="header">Herramientas</div>
+      <div class="tools">
+        <ul>
+          <li class="material-icons selected" title="Mover vista">pan_tool</li>
+          <li class="material-icons" title="Acercar">zoom_in</li>
+          <li class="material-icons" title="Alejar">zoom_out</li>
+          <li class="material-icons" title="Cargar puntos de archivo" id="loadFileBtn">open_in_browser</li>
+          <li class="material-icons" title="Guardar puntos en archivo" id="saveFileBtn">save</li>
+          <li class="material-icons" title="Borrar todo" id="clearAllBtn">delete_forever</li>
+        </ul>
+        <ul>
+          <li class="material-icons" title="Agregar">add_circle</li>
+          <li class="material-icons" title="Eliminar">remove_circle</li>
+          <li class="material-icons" title="Mover punto">open_with</li>
+        </ul>
+      </div>
+      <div class="header">Puntos</div>
+      <div class="pointsList">
+        <ul id="pointsList"></ul>
+      </div>
+      <div class="footer">
+        Trabajo para final de Análisis y Diseño de Algoritmos I<br>
+        Universidad Nacional del Centro de la Provincia de Buenos Aires, Argentina<br>
+        Desarrollado por Nahuel Dallacamina Ortea<br>
+        Noviembre/Diciembre 2018
+      </div>
+    </div>
+    <div class="statusBar">
+      <div></div>
+      <span></span>
+    </div>
+    <script type="text/javascript" src="third_party/download.js"></script>
+    <script type="text/javascript">
+      var Module = {
+        onRuntimeInitialized: function() {
+          let script = document.createElement('script');
+          script.type = "module";
+          script.src = "js/main.js";
+          document.body.appendChild(script);
+        }
+      };
+    </script>
+    <script type="text/javascript" src="wasm/WASMModule.js"></script>
+  </body>
+</html>

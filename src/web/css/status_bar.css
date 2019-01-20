@@ -1,0 +1,41 @@
+.statusBar {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    height: 25px;
+    z-index: 333;
+    border-top: #999 1px solid;
+    box-sizing: border-box;
+    padding: 3px 5px;
+    overflow-y: auto;
+    background-color: rgb(245,245,245);
+    transition: height 50ms linear;
+}
+
+.statusBar:hover {
+    padding: 10px;
+    height: 300px;
+}
+
+.statusBar > div {
+    display: none;
+    font-size: 1.2em;
+}
+
+.statusBar > div > div + div{
+    margin-top: 5px;
+}
+
+.statusBar > span {
+    line-height: 18px;
+    font-size: 1.2em;
+    color: #777;
+}
+
+.statusBar:hover > div {
+    display: block;
+}
+
+.statusBar:hover > span {
+    display: none;
+}

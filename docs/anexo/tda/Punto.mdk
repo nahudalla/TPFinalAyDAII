@@ -1,0 +1,24 @@
+### Punto {#sec-anexo-tda-punto}
+```
+CLASS Punto
+IMPORTS Entero, Vector
+BASIC CONSTRUCTORS inicPunto
+EFFECTIVE
+TYPE Punto
+OPERATIONS
+  inicPunto: Entero * Entero -> Punto;
+  obtenerX: Punto -> Entero;
+  obtenerY: Punto -> Entero;
+  _-_: Punto * Punto -> Vector;
+  _==_: Punto * Punto -> Boolean;
+AXIOMS p1, p2:Punto; e1, e2, e3, e4:Entero;
+  obtenerX(inicPunto(e1, e2)) = e1;
+  obtenerY(inicPunto(e1, e2)) = e2;
+  p1 - p2 = inicVector(
+      obtenerX(p2) - obtenerX(p1),
+      obtenerY(p2) - obtenerY(p1)
+  );
+  p1 == p2 = obtenerX(p1) == obtenerX(p2) and
+             obtenerY(p1) == obtenerY(p2);
+END-CLASS
+```

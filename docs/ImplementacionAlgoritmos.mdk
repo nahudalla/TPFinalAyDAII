@@ -1,0 +1,393 @@
+# Implementación en C++ de los algoritmos {#sec-impl-algor}
+La implementación de los algoritmos fue hecha en lenguaje C++. Todas las estructuras de datos necesarias para la implementación de los algoritmos fueron implementadas desde cero siguiendo las técnicas vistas en la materia. Sus definiciones formales como Tipos de Datos Abstractos se encuentra en la [sección &sec-anexo-tda;][#sec-anexo-tda]. En esta sección se hará un repaso en detalle por la implementación específica de cada algoritmo visto en la sección [sección &sec-algoritmos-geometricos;][#sec-algoritmos-geometricos]. Teniendo las estructuras implementada, la implementación de los algoritmos resulta un mapeo casi directo entre el pseudocódigo y la sintaxis de C++.
+
+Todos los algoritmos fueron implementados como clases separadas, que al momento de la instanciación reciben por parámetro en su constructor los datos con los que trabaja. También, al momento de instanciación, se realizan todos los preprocesamientos que el algoritmo requiera sobre el conjunto de datos. El resultado del preprocesamiento es luego guardado en la instancia de la clase para la posterior ejecución del resto del algoritmo. En caso que la etapa de preprocesamiento detecte que el conjunto de datos que recibe no cumple con los criterios necesarios para la ejecución del algoritmo, estos no se almacenan y la instancia del algoritmo queda en un estado de _no poder ejecutarse_. Es posible saber luego de la instanciación si un algoritmo podrá ser ejecutado llamando al método `canRun`. Si la instancia del algoritmo queda en un estado de ejecución posible, llamando al método `run` se efectúa la ejecución del algoritmo. Luego de la primer ejecución del método `run`, el conjunto de datos de entrada es borrado de la instancia de la clase, su memoria liberada y el resultado es guardado. En caso de futuros llamados al método `run`, el resultado guardado es devuelto y no es necesaria una nueva ejecución del algoritmo.
+
+## Detectar intersección entre varios segmentos {#sec-impl-algor-interseccion}
+Este algoritmo está implementado en la clase `AnySegmentsIntersect`. En el constructor se verifica la única precondición: que no puede haber segmentos verticales. Además, como el algoritmo debe detener la línea de barrido en cada _punto de evento_, que son los extremos de los segmentos, éstos son agregados a una lista junto con marcadores para saber si el extremo es izquierdo o derecho. El siguiente bucle `for` realiza esta tarea. La variable `endpoints` es una lista definida previamente, y el iterator `it` itera sobre el conjunto de segmentos de entrada.
+
+``` cpp
+for(; it != end; ++it) {
+  const Segment & segment = *it;
+
+  // PRECONDICIÓN: no puede haber segmentos verticales
+  if(segment.getFrom().getX() == segment.getTo().getX()) continue;
+
+  endpoints->add(Endpoint{segment, LEFT});
+  endpoints->add(Endpoint{segment, RIGHT});
+}
+```
+
+Cuando la línea de barrido llega a un punto de evento, el algoritmo requiere saber si hay algún segmento inmediatamente por encima o por debajo del segmento al que pertenece dicho punto. Para esto, es necesario mantener una estructura de árbol de búsqueda binario balanceado. Este árbol debe ordenar los segmentos a medida que son ingresados según el orden establecido para el algoritmo. El árbol de búsqueda utilizado es del tipo Red-Black, como ya se mencionó. La implementación realizada permite inicializar la estructura con un comparador a medida. El siguiente fragmento de código implementa el comparador para este algoritmo. Puede verse que recibe dos segmentos y usa el método descrito en la [sección &sec-algoritmos-geometricos-base-segmento-orden;] [#sec-algoritmos-geometricos-base-segmento-orden] para saber cuál se encuentra debajo y cuál por encima del otro. Se considera como menor al segmento que está por debajo. La implementación de árbol de búsqueda usa este comparador para buscar los elementos, por lo que sólo se devuelve `EQUAL` cuando se trata del mismo segmento.
+
+``` cpp
+Point sweepLinePoint;
+Comparator<Segment>::ComparatorFunction totalOrderComparator =
+  [&sweepLinePoint](
+    const Segment & lhs,
+    const Segment & rhs
+  ) -> Comparator<Segment>::Result {
+    return lhs.isBelowAtPoint(rhs, sweepLinePoint) ? LESS :
+           (rhs.isBelowAtPoint(lhs, sweepLinePoint) ? GREATER :
+           (lhs == rhs ? EQUAL : GREATER));
+  };
+```
+
+La parte principal del algoritmo está implementada en el siguiente fragmento de código. El bucle `for` recorre los puntos de evento (mueve la línea de barrido), mientras que no se haya detectado una intersección. El bloque `if` realiza las operaciones que describe el algoritmo para cuando el extremo es izquierdo y el bloque `else` cuando el extremo es derecho. Es de importancia destacar que en el árbol binario de búsqueda, los segmentos están ordenados según el orden descrito arriba, de menor a mayor. Entonces, cuando el algoritmo requiere acceder al segmento anterior o siguiente según el orden impuesto, basta con avanzar o retroceder el iterador al segmento actual.
+
+``` cpp
+bool anySegmentsIntersect = false;
+for (; it != end && !anySegmentsIntersect; ++it) {
+  const Endpoint & endpoint = *it;
+  if(endpoint.position == LEFT) {
+    sweepLinePoint = endpoint.segment.getLeftmostEndpoint();
+    auto it_segment = tree.insert(endpoint.segment);
+    auto above = it_segment; above++;
+    auto below = it_segment; below--;
+
+    if( (above != tree_end && it_segment->intersects(*above))
+         || (below != tree_end
+              && it_segment->intersects(*below))
+      ) {
+      anySegmentsIntersect = true;
+    }
+  } else {
+    sweepLinePoint = endpoint.segment.getRightmostEndpoint();
+    auto it_segment = tree.search(endpoint.segment);
+    auto above = it_segment; above++;
+    auto below = it_segment; below--;
+
+    if(above != tree_end && below != tree_end
+        && above->intersects(*below))
+    {
+      anySegmentsIntersect = true;
+    }
+    tree.remove(it_segment);
+  }
+}
+```
+
+## Graham Scan {#sec-impl-algor-graham}
+Este algoritmo tiene tres preprocesamientos sobre los puntos de entrada:
+
+ 1. Se debe encontrar el punto que tenga la coordenada `y` más baja de todas (en caso de empate el de más a la derecha). Este punto luego es eliminado de la lista de entrada.
+ 1. Se deben ordenar los puntos de menor a mayor según el ángulo polar con respecto al punto elegido en el inciso anterior.
+ 1. Si más de un punto tiene el mismo ángulo polar, se deben eliminar todos menos el más alejado.
+
+Para realizar el preprocesamiento número 1, se utilizó un método especial de la clase `List` llamado `findMinimum`. Este método recibe opcionalmente un comparador y devuelve el mínimo elemento encontrado, según el criterio de comparación escogido. Para este problema, dos puntos $p_1 = (x_1, y_1)$ y $p_2 = (x_2, y_2)$ se comparan como $p_1 < p_2$ si y sólo si $y_1 < y_2$ ó $x_1 > x_2$. Los recíprocos para $p_2 < p_1$ también son válidos y si no se cumplen niguna de las condiciones, los puntos son iguales. El siguiente fragmento de código implementa esta funcionalidad:
+
+``` cpp
+auto it = points.findMinimum(
+  (CompFn) [](
+    const Point &lhs,
+    const Point &rhs
+  ) -> CompRes {
+      if (lhs.getY() < rhs.getY()) return CompRes::LESS;
+      else if (rhs.getY() < lhs.getY()) return CompRes::GREATER;
+      else if (lhs.getX() < rhs.getX()) return CompRes::LESS;
+      else if (rhs.getX() < lhs.getX()) return CompRes::GREATER;
+      else return CompRes::EQUAL;
+    }
+);
+
+this->p0 = points.remove(it);
+```
+
+Para el preprocesamiento 2 se utilizó el método `sort` de la clase lista, que implementa el algoritmo Merge Sort. Este método recibe un comparador por parámetro, que utilizará para hacer el ordenamiento según el criterio definido. Para ordenar los puntos en orden creciente de ángulo polar sin tener que calcularlo, se usan los métodos descritos en la [sección &sec-algoritmos-geometricos-base-producto;][#sec-algoritmos-geometricos-base-producto]. Teniendo en cuenta el punto $p_0$ elegido en el preprocesamiento número 1, los puntos $p_1$ y $p_2$ se comparan como $p_1 < p_2$ si y sólo si el vector $\overrightarrow{p_0 p_2}$ se encuentra en sentido _antihorario_ con respecto al vector $\overrightarrow{p_0 p_1}$. Es válido también invertir $p_1$ con $p_2$ para verificar $p_2 < p_1$. Si los vectores son colineares, se considerará como más grande el punto $p_i$ tal que el segmento $\overline{p_0 p_i}$ contenga al otro punto. En la sección &sec-algoritmos-geometricos-base-segmento-contiene; se explicó cómo determinar si un segmento contiene un punto. Esta funcionalidad está implementada en el siguiente fragmento de código:
+
+``` cpp
+points.sort(
+  (CompFn) [&p0](
+    const Point & lhs,
+    const Point & rhs
+  ) -> CompRes {
+    if(lhs == rhs) return CompRes::EQUAL;
+
+    Vector v1(p0, lhs),
+           v2(p0, rhs);
+
+    if(v1.isCounterClockwise(v2)) return CompRes::LESS;
+    else if(v1.isClockwise(v2)) return CompRes::GREATER;
+    else if(Segment(p0, lhs).contains(rhs)) return CompRes::GREATER;
+    else return CompRes::LESS;
+  }
+);
+```
+
+Para el preprocesamiento número 3 se usó el método `removeIf` de la clase `List`, que recorre uno a uno los elementos de la lista y delega la decisión de eliminar o no cada uno a la función que recibe por parámetro. En este caso un punto $p_i$ debe ser eliminado de la lista (que ya fue ordenada en el preprocesamiento 2), sólo si existe $p_{i+1}$ y el vector $\overrightarrow{p_0 p_i}$ es colinear con el vector $\overrightarrow{p_0 p_{i+1}}$. En la [sección &sec-algoritmos-geometricos-base-producto;][#sec-algoritmos-geometricos-base-producto] se explicó cómo determinar si dos vectores son colineares usando el producto cruzado. El siguiente framento de código implementa esta funcionalidad:
+
+``` cpp
+points.removeIf(
+  [&p0](
+    List<Point>::Iterator const& _it,
+    List<Point>::Iterator const& end
+  )->bool {
+    auto it = _it;
+    auto next = it; ++next;
+    if(next == end) return false;
+
+    return Vector(p0, *it).isColinear(Vector(p0, *next));
+  }
+);
+```
+
+El siguiente fragmento de código implementa el resto del algoritmo según lo definido en la [sección &sec-algoritmos-geometricos-poligono-graham-algoritmo;][#sec-algoritmos-geometricos-poligono-graham-algoritmo]. Para determinar si dos segmentos consecutivos hacen un giro a la izquierda, se usó el método descrito en la [sección &sec-algoritmos-geometricos-base-segmento-giro;][#sec-algoritmos-geometricos-base-segmento-giro]. El iterador `it` comienza apuntando al primer elemento de la lista de puntos a procesar.
+
+``` cpp
+Stack<Point> stack;
+
+stack.push(*(this->p0));
+stack.push(*(it++));
+stack.push(*(it++));
+
+for(; it != end; ++it) {
+  while(
+    !Segment(stack.nextToTop(), stack.top())
+    .turnsLeft(Segment(stack.top(), *it))
+  ) {
+    stack.pop();
+  }
+  stack.push(*it);
+}
+```
+
+## Jarvis March {#sec-impl-algor-jarvis}
+Este algoritmo sólo require como preprocesamiento encontrar los puntos mínimo y máximo del conjunto de entrada. Para realizar esta tarea, se usa el mismo método descrito en el preprocesamiento 1 del algoritmo Graham Scan de la sección anterior. El siguiente fragmento de código encuentra el punto más bajo, o más a la derecha en caso de empate:
+
+``` cpp
+auto it = points.findMinimum(
+  (CmpFn) [](
+    const Point &lhs,
+    const Point &rhs
+  ) -> CmpRes {
+    if(lhs.getY() < rhs.getY()) return CmpRes::LESS;
+    else if(rhs.getY() < lhs.getY()) return CmpRes::GREATER;
+    else if(lhs.getX() < rhs.getX()) return CmpRes::LESS;
+    else if(rhs.getX() < lhs.getX()) return CmpRes::GREATER;
+    else return CmpRes::EQUAL;
+  }
+);
+
+this->lowest = *it;
+```
+
+El siguiente fragmento de código realiza la operación inversa al anterior para encontrar el punto máximo:
+
+``` cpp
+auto it = points.findMinimum(
+  (CmpFn) [](
+    const Point &lhs,
+    const Point &rhs
+  ) -> CmpRes {
+    if(lhs.getY() > rhs.getY()) return CmpRes::LESS;
+    else if(rhs.getY() > lhs.getY()) return CmpRes::GREATER;
+    else if(lhs.getX() > rhs.getX()) return CmpRes::LESS;
+    else if(rhs.getX() > lhs.getX()) return CmpRes::GREATER;
+    else return CmpRes::EQUAL;
+  }
+);
+
+this->highest = *it;
+```
+
+El resto del algoritmo es implementado en el siguiente fragmento de código, según lo descrito en la [sección &sec-algoritmos-geometricos-poligono-jarvis-algoritmo;][#sec-algoritmos-geometricos-poligono-jarvis-algoritmo]. En esta implementación, para encontrar el punto con menor ángulo polar con respecto al actual se vuelve a usar el método `findMinimum` de la clase `List` (al igual que en la implementación del preprocesamiento), que recibe un comparador. Cabe destacar que una vez alcanzado el punto más alto, se invierten los ejes multiplicando todos los puntos por -1. Así se logra que los cálculos, para determinar si un punto tiene mayor ángulo polar que otro, sean uniformes para la cadena derecha e izquierda. El método para comparar los ángulos polares es el mismo que el utilizado para el algoritmo Graham Scan.
+
+``` cpp
+Stack<Point> result;
+
+const Point & last = *(this->lowest),
+           & highest = *(this->highest);
+Point current = last;
+bool highestReached = false;
+
+do {
+  if(current == highest) highestReached = true;
+
+  result.push(current);
+
+  auto it_next = this->points->findMinimum(
+    (CmpFn) [&current, &highestReached](
+      const Point& lhs,
+      const Point& rhs
+    ) -> CmpRes {
+      if(lhs == rhs) return CmpRes::EQUAL;
+
+      Point _current, _lhs, _rhs;
+
+      if(highestReached) {
+        // Si se alcanzó el punto más alto, trabajo con los ejes invertidos
+        _current = Point(-current.getX(), -current.getY());
+        _lhs = Point(-lhs.getX(), -lhs.getY());
+        _rhs = Point(-rhs.getX(), -rhs.getY());
+      } else {
+        _current = current;
+        _lhs = lhs;
+        _rhs = rhs;
+      }
+
+      Vector v1(_current, _lhs),
+             v2(_current, _rhs);
+
+      if(v1.isCounterClockwise(v2)) return CmpRes::LESS;
+      else if(v1.isClockwise(v2)) return CmpRes::GREATER;
+      else if(Segment(_current, _lhs).contains(_rhs)) {
+        return CmpRes::LESS;
+      } else return CmpRes::GREATER;
+    }
+  );
+
+  current = this->points->remove(it_next);
+}while(current != last);
+```
+
+## Encontrar los puntos más cercanos {#sec-impl-algor-puntos}
+El único preprocesamiento requerido por este algoritmo es ordenar todos los puntos que ingresan como datos de entrada según sus coordenadas $x$. En el siguiente fragmento de código, extraído del constructor de la clase `ClosestPairOfPoints`, se realiza este ordenamiento. Nuevamente se usa el método `sort` de la clase `List`, tal como en las implementaciones de los algoritmos anteriores.
+
+``` cpp
+this->points_x->sort(
+  (CmpFn) [](
+    const Point & lhs,
+    const Point & rhs
+  ) -> CmpRes {
+    return lhs.getX() < rhs.getX()
+           ? CmpRes::LESS
+           : ( rhs.getX() < lhs.getX()
+               ? CmpRes::GREATER
+               : CmpRes::EQUAL );
+  }
+);
+```
+
+La implementación principal del algoritmo está hecha en la función `findClosest`, que el método `run` de la clase `ClosestPairOfPoints` llama. Siguiendo el algoritmo esta función comienza con el caso base, cuando $n$ (cantidad de puntos en los arreglos $X$ e $Y$) es $n \leq 3$.
+
+``` cpp
+if (n <= 3) {
+  sortPointsByY(Py, n);
+
+  return bruteForce(Px, n);
+}
+
+void sortPointsByY(Point points[], std::size_t n) {
+  for(std::size_t i = 0; i < n; ++i) {
+    for(std::size_t j = i+1; j < n; ++j) {
+      if(points[j].getY() < points[i].getY()) {
+        std::swap(points[i], points[j]);
+      }
+    }
+  }
+}
+
+std::pair<Point, Point> bruteForce(
+  Point points[],
+  std::size_t n
+) {
+  std::size_t minSquaredDistance = SIZE_MAX;
+  std::pair<Point, Point> closest_points;
+
+  for(std::size_t i = 0; i < n; ++i) {
+    for(std::size_t j = i+1; j < n; ++j) {
+      auto sqDistance = Segment(points[i], points[j])
+                        .squaredLength();
+      if(sqDistance < minSquaredDistance) {
+        minSquaredDistance = sqDistance;
+        closest_points = std::make_pair(points[i], points[j]);
+      }
+    }
+  }
+
+  return closest_points;
+}
+```
+
+Para la parte del algoritmo _divide_ y _conquista_, se calcula la cantidad de puntos que tendrá cada mitad. Para el arreglo ordenado por la componente $x$ (llamado $Px$) simplemente se accede a cada mitad del mismo usando aritmética de punteros. Para el arreglo ordenado por las $y$ (llamado $Py$) se crean dos nuevos, uno por cada mitad, y es necesario copiar del arreglo original a los nuevos los puntos que van en ellos. Esta copia es necesaria porque en las llamadas recursivas los arreglos izquierdo ($Pyl$) y derecho ($Pyr$) serán ordenados. Luego de realizar la división, se hacen las dos llamadas recursivas para procesar las partes izquierda y derecha por separado. El siguiente fragmento implementa esta idea.
+
+``` cpp
+std::size_t mid = n / 2;
+
+midPoint = Px[mid];
+
+Point Pyl[mid], Pyr[n - mid];
+divideY(Pyl, Pyr, Py, n);
+
+auto pl = findClosest(Px, Pyl, mid);
+auto pr = findClosest(Px + mid, Pyr, n - mid);
+```
+
+Para la parte de _combinar_ los resultados, se realizan dos operaciones. Primero se fusionan de manera ordenada, mediante el llamado a la función mergeY, los arreglos $Pyl$ y $Pyr$ nuevamente en el arreglo original $Py$. Luego, se selecciona el par de puntos con distancia más pequeña entre los resultados de la llamada recursiva izquierda y derecha.
+
+``` cpp
+mergeY(Py, Pyl, Pyr, mid, n-mid);
+
+auto sqDistanceLeft = Segment(pl.first, pl.second)
+                      .squaredLength();
+auto sqDistanceRight = Segment(pr.first, pr.second)
+                       .squaredLength();
+
+if (sqDistanceRight < sqDistanceLeft) {
+  minSqDistance = sqDistanceRight;
+  closestPair = pr;
+} else {
+  minSqDistance = sqDistanceLeft;
+  closestPair = pl;
+}
+```
+
+El algoritmo luego requiere que se eliminen del arreglo $Py$ los puntos que tengan distancia horizontal a la línea central mayor a la mínima encontrada hasta ahora. Para esto, se copian en un nuevo arreglo todos los puntos que cumplen con este criterio.
+
+``` cpp
+Point strip[n];
+std::size_t j = 0;
+for(std::size_t i = 0; i < n; i++) {
+  if(squaredXDistance(Py[i], midPoint) < minSqDistance) {
+    strip[j] = Py[i];
+    ++j;
+  }
+}
+```
+
+Por último, se llama a la función `stripClosest`, que busca dentro del arreglo `strip` los puntos más cercanos. Estos son comparados con los dos puntos más cercanos encontrados en las llamadas recursivas y, por último, se devuelven los de menor distancia.
+
+``` cpp
+auto stripClosestPair = stripClosest(strip, j, minSqDistance);
+return (!stripClosestPair.has_value()
+        || minSqDistance < Segment(
+                  stripClosestPair->first,
+                  stripClosestPair->second
+          ).squaredLength()
+        )  
+           ? closestPair
+           : *stripClosestPair;
+```
+
+``` cpp
+auto stripClosest(
+  Point strip[],
+  std::size_t n,
+  std::size_t squaredDistance
+) {
+  std::size_t minSquaredDistance = squaredDistance;
+  std::optional<std::pair<Point, Point>> closestPoints;
+
+  for(std::size_t i = 0; i < n; ++i) {
+    for(
+      std::size_t j = i+1;
+      j < n && squaredYDistance(
+        strip[i],
+        strip[j]
+      ) < minSquaredDistance;
+      ++j
+    ) {
+      auto sqDistance = Segment(
+        strip[i],
+        strip[j]
+      ).squaredLength();
+      if(sqDistance < minSquaredDistance) {
+        minSquaredDistance = sqDistance;
+        closestPoints = std::make_pair(strip[i], strip[j]);
+      }
+    }
+  }
+
+  return closestPoints;
+}
+```

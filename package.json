@@ -1,0 +1,30 @@
+{
+  "name": "tpfinalaydaii",
+  "productName": "tpfinalaydaii",
+  "version": "1.0.0",
+  "description": "Herramienta para usar algoritmos geométricos básicos.",
+  "scripts": {
+    "run": "electron web-build-release",
+    "build-and-run": "npm run web-build-release && npm run run",
+    "generate-electron-package-config": "node ./electronPackageJSONGenerator.js",
+    "web-build-debug": "rsync -ruthq --delete --progress --exclude=wasm/ src/web/ web-build-debug/",
+    "web-build-release": "npm run generate-electron-package-config && rsync -ruthq --delete --progress --exclude=wasm/ --exclude=package.json src/web/ web-build-release/",
+    "serve-debug": "http-server -c-1 web-build-debug",
+    "serve-release": "http-server -c-1 web-build-release"
+  },
+  "author": "Nahuel Dallacamina",
+  "license": "MIT",
+  "config": {},
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^3.0.10",
+    "electron-packager": "^12.2.0",
+    "http-server": "^0.11.1"
+  },
+  "electronPackageJSONGenerator": {
+    "exclude": ["scripts", "config", "devDependencies"],
+    "append": {
+      "main": "electron-startup.js"
+    }
+  }
+}

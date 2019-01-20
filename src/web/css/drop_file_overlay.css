@@ -1,0 +1,37 @@
+.drop-file-overlay {
+    position: absolute;
+    z-index: 9999999;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(255, 255, 255, .85);
+    font-size: 3em;
+    font-weight: bolder;
+    display: none;
+    pointer-events: none;
+}
+
+.drop-file-overlay.show {
+    display: flex;
+}
+
+.drop-file-overlay > div {
+    animation: drop-file-overlay-anim 850ms infinite ease-in;
+    margin: auto;
+    text-align: center;
+}
+
+@keyframes drop-file-overlay-anim {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: .4;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}

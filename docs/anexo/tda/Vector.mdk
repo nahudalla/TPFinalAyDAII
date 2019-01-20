@@ -1,0 +1,31 @@
+### Vector {#sec-anexo-tda-vector}
+```
+CLASS Vector
+IMPORTS Entero
+BASIC CONSTRUCTORS inicVector
+EFFECTIVE
+TYPE Vector
+OPERATIONS
+  inicVector: Entero * Entero -> Vector;
+  obtenerX: Vector -> Entero;
+  obtenerY: Vector -> Entero;
+  _==_: Vector * Vector -> Boolean;
+  crossProduct Vector * Vector -> Entero;
+  isClockwise: Vector * Vector -> Boolean;
+  isColinear: Vector * Vector -> Boolean;
+  isCounterClockwise: Vector * Vector -> Boolean;
+  squaredLength: Vector -> Entero;
+AXIOMS v1, v2:Vector; e1, e2, e3, e4:Entero;
+  obtenerX(inicVector(e1, e2)) = e1;
+  obtenerY(inicVector(e1, e2)) = e2;
+  v1 == v2 = obtenerX(v1) == obtenerX(v2) and
+             obtenerY(v1) == obtenerY(v2);
+  crossProduct(v1, v2) = (obtenerX(v1)*obtenerY(v2)) -
+                         (obtenerY(v1)*obtenerX(v2));
+  isClockwise(v1, v2) = crossProduct(v1, v2) > 0;
+  isColinear(v1, v2) = crossProduct(v1, v2) == 0;
+  isCounterClockwise(v1, v2) = crossProduct(v1, v2) < 0;
+  squaredLength(v1) = obtenerX(v1)*obtenerX(v1) +
+                      obtenerY(v1) * obtenerY(v1);
+END-CLASS
+```

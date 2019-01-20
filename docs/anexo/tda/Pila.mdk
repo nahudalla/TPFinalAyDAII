@@ -1,0 +1,27 @@
+### Pila {#sec-anexo-tda-pila}
+```
+CLASS Pila [Elemento]
+IMPORTS
+BASIC CONSTRUCTORS pilaVacia, agregarPila
+EFFECTIVE
+TYPE Pila
+OPERATIONS
+  pilaVacia: -> Pila;
+  agregarPila: Pila * Elemento -> Pila;
+  esVacia: Pila -> Boolean;
+  eliminarPila: Pila -> Pila
+    pre: not esVacia(p);
+  topePila: Pila (p) -> Elemento
+    pre: not esVacia(p);
+  siguienteTopePila: Pila (p) -> Elemento
+    pre: not esVacia(p) and not esVacia(eliminarPila(p));
+AXIOMS p:Pila; e:Elemento;
+  esVacia(pilaVacia()) = True;
+  esVacia(agregarPila(p, e)) = False;
+
+  eliminarPila(agregarPila(p, e)) = p;
+  topePila(agregarPila(p, e)) = e;
+  siguienteTopePila(agregarPila(p, e)) =
+      topePila(eliminarPila(p));
+END-CLASS
+```

@@ -1,0 +1,5 @@
+.sidebar > .tools > ul > li {
+    float: left;
+    margin-right: 5px;
+    font-size: 1.5em;
+}

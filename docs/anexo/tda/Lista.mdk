@@ -1,0 +1,38 @@
+### Lista {#sec-anexo-tda-lista}
+```
+CLASS Lista [Elemento]
+IMPORTS Nat
+BASIC CONSTRUCTORS listaVacia, agregarPrincipioLista
+EFFECTIVE
+TYPE Lista
+OPERATIONS
+  listaVacia: -> Lista;
+  agregarPrincipioLista: Lista * Elemento -> Lista;
+  esVacia: Lista -> Boolean;
+  longitudLista: Lista -> Nat;
+  agregarFinalLista: Lista * Elemento -> Lista;
+  obtenerElemLista: Lista (l) * Nat (n) -> Elemento
+    pre: n >= 1 and n <= longitudLista(l);
+  eliminarLista: Lista (l) * Nat (n) -> Lista
+    pre: n >= 1 and n <= longitudLista(l);
+AXIOMS l:Lista; e,e1:Elemento;
+  esVacia(listaVacia()) = True;
+  esVacia(agregarPrincipioLista(l, e)) = False;
+
+  longitudLista(listaVacia()) = 0;
+  longitudLista(agregarPrincipioLista(l, e)) =
+      1 + longitudLista(l);
+
+  agregarFinalLista(listaVacia(), e) =
+      agregarPrincipioLista(listaVacia(), e);
+  agregarFinalLista(agregarPrincipioLista(l, e1), e) =
+      agregarPrincipioLista(agregarFinalLista(l, e), e1);
+
+  obtenerElemLista(agregarLista(l, e), 1) = e;
+  obtenerElemLista(l, n) = obtenerElemLista(l, n-1);
+
+  eliminarLista(agregarLista(l, e), 1) = l;
+  eliminarLista(agregarLista(l, e), n) =
+      agregarLista(eliminarLista(l, n-1), e);
+END-CLASS
+```

@@ -1,0 +1,28 @@
+.sidebar > .pointsList {
+    flex: 1 1 auto;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.sidebar > .pointsList > ul > li {
+    border-left: none;
+    border-right: none;
+    display: flex;
+    flex-flow: row;
+}
+
+.sidebar > .pointsList > ul > li > span {
+    display: inline-block;
+    line-height: normal;
+    vertical-align: middle;
+
+    font-size: 1.5em;
+    flex: 0 1 auto;
+}
+
+.sidebar > .pointsList > ul > li > span + span {
+    display: block;
+    font-size: 1.2em;
+    flex: 1 1 auto;
+    text-align: center;
+}

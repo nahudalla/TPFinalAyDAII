@@ -1,0 +1,77 @@
+### Segmento {#sec-anexo-tda-segmento}
+```
+CLASS Segmento
+IMPORTS Punto, Vector, Entero
+BASIC CONSTRUCTORS inicSegmento
+EFFECTIVE
+TYPE Segmento
+OPERATIONS
+  inicSegmento: Punto * Punto -> Segmento;
+  obtenerDesde: Segmento -> Punto;
+  obtenerHasta: Segmento -> Punto;
+
+  squaredLength: Segmento -> Entero;
+  _==_: Segmento * Segmento -> Boolean;
+
+  obtenerExtremoIzquierdo: Segmento -> Punto;
+  obtenerExtremoDerecho: Segmento -> Punto;
+
+  giroAIzquierda: Segmento (s1) * Segmento (s2) -> Boolean
+    pre: obtenerHasta(s1) == obtenerDesde(s2);
+  giroADerecha: Segmento * Segmento -> Boolean
+    pre: obtenerHasta(s1) == obtenerDesde(s2);
+AXIOMS p1, p2:Punto; s1, s2:Segmento; x1, x2, y1, y2: Entero;
+  obtenerDesde(inicSegmento(p1, p2)) = p1;
+  obtenerHasta(inicSegmento(p1, p2)) = p2;
+  squaredLength(inicSegmento(p1, p2)) = squaredLength(
+      inicVector(p1, p2)
+  );
+  s1 == s2 = obtenerDesde(s1) == obtenerDesde(s2) and
+             obtenerHasta(s1) == obtenerHasta(s2);
+  (x1 < x2) => obtenerExtremoIzquierdo(
+    inicSegmento(
+      inicPunto(x1, y1),
+      inicPunto(x2, y2)
+    )
+  ) = x1;
+  (x1 >= x2) => obtenerExtremoIzquierdo(
+    inicSegmento(
+      inicPunto(x1, y1),
+      inicPunto(x2, y2)
+    )
+  ) = x2;
+  (x1 > x2) => obtenerExtremoDerecho(
+    inicSegmento(
+      inicPunto(x1, y1),
+      inicPunto(x2, y2)
+    )
+  ) = x1;
+  (x1 <= x2) => obtenerExtremoDerecho(
+    inicSegmento(
+      inicPunto(x1, y1),
+      inicPunto(x2, y2)
+    )
+  ) = x2;
+
+  giroAIzquierda(s1, s2) = isCounterClockwise(
+    inicVector(
+      obtenerDesde(s1),
+      obtenerDesde(s2)
+    ),
+    inicVector(
+      obtenerDesde(s1),
+      obtenerHasta(s2)
+    )
+  );
+  giroADerecha(s1, s2) = isClockwise(
+    inicVector(
+      obtenerDesde(s1),
+      obtenerDesde(s2)
+    ),
+    inicVector(
+      obtenerDesde(s1),
+      obtenerHasta(s2)
+    )
+  );
+END-CLASS
+```

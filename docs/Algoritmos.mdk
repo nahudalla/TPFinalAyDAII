@@ -1,0 +1,639 @@
+# Algoritmos geométricos {#sec-algoritmos-geometricos}
+Como se mencionó en la [introducción][#sec-introduccion], los algoritmos geométricos se topan con el problema de la precisión limitada a la hora de realizar los cómputos. Esta pérdida de precisión por la representación interna que realizan las computadoras de los números reales puede provocar que se de una respuesta equivocada en determinadas circunstancias. Por ejemplo, en la pregunta presentada anteriormente sobre el sentido de giro de dos vectores $\boldsymbol{u}$ y $\boldsymbol{v}$ en un caso como el de la [Figura &vect-ang-chico;][#vect-ang-chico], si se intenta calcular el ángulo entre ellos usando la [Fórmula &eq-angulo-vectores;][#eq-angulo-vectores] para responderla, se puede dar una respuesta errónea. El ángulo puede llegar a ser tan chico que esté fuera del rango de representación de la computadora[^precision-doble-ieee-754], por lo que puede que sea imposible conocerlo o bien puede dar cero, indicando erróneamente que los vectores son colineares[^vectores-colineares], y entonces no habría sentido de giro.
+
+[^precision-doble-ieee-754]: En la representación IEEE 754 de doble precisión (64 bits), la usada comunmente en la mayoría de las computadoras, el ancho de 11 bits del exponente permite la representación de números en el rango comprendido entre $2^{-1023}$ y $2^{+1023}$ ($10^{-308}$ y $10^{+308}$), con una precisión de 15 a 17 dígitos decimales completos. Fuente: [Formato en coma flotante de doble precisión - Wikipedia].
+
+[Formato en coma flotante de doble precisión - Wikipedia]: ^https://es.wikipedia.org/wiki/Formato_en_coma_flotante_de_doble_precisi%C3%B3n#Descripci%C3%B3n_del_formato "Wikipedia"
+
+[^vectores-colineares]: Dos vectores son colineares cuando, al graficarlos, se encuentran ambos sobre la misma línea.
+
+~~ Figure {#vect-ang-chico; caption: "Vectores con un ángulo muy chico.";}
+~~~ Snippet
+\begin{tikzpicture}
+  \draw[thin,gray!40] (-2,-2) grid (2,2);
+  \draw[<->] (-2,0)--(2,0) node[right]{$x$};
+  \draw[<->] (0,-2)--(0,2) node[above]{$y$};
+  \draw[line width=1pt,red,-stealth](0,0)--(2,1.95) node[anchor=north west]{$\boldsymbol{v}$};
+  \draw[line width=1pt,blue,-stealth](0,0)--(1.95,2) node[anchor=south east]{$\boldsymbol{u}$};
+\end{tikzpicture}
+~~~
+~~
+
+En la sección [#sec-algoritmos-geometricos-base] se muestran conceptos matemáticos que sólo involucran suma, resta y multiplicación, por lo que su tiempo de ejecución es $O(1)$. Estos conceptos serán usados en las próximas secciones como base para el resto de los algoritmos. En la sección [#sec-algoritmos-geometricos-interseccion] se presenta un algoritmo con tiempo de ejecución $O(\mbox{n }\log(\mbox{n}))$ para, dado un conjunto de segmentos, determinar si al menos dos de ellos se intersecan. La sección [#sec-algoritmos-geometricos-poligono] muestra dos algoritmos para determinar los puntos que forman los vértices del polígono convexo más chico que contiene a todos los puntos de entrada, en tiempos $O(\mbox{n }\log(\mbox{n}))$ para [Graham Scan][#sec-algoritmos-geometricos-poligono-graham] y $O(\mbox{n }h)$ para [Jarvis March][#sec-algoritmos-geometricos-poligono-jarvis], donde $h$ es la cantidad de puntos que forman los vértices del polígono. Por último, en la sección [#sec-algoritmos-geometricos-puntos], se muestra un algoritmo con tiempo $O(\mbox{n }\log(\mbox{n}))$ para encontrar el par de puntos que se encuentran más cercanos, entre un conjunto de $\mbox{n}$ puntos.
+
+## Conceptos matemáticos {#sec-algoritmos-geometricos-base}
+
+### Producto cruzado {#sec-algoritmos-geometricos-base-producto}
+
+El concepto matemático de **producto cruzado** es esencial para solucionar problemas de algoritmos geométricos. Si consideramos los vectores $\textcolor{blue}{\vec{a}}=(x_1,y_1)$ y $\textcolor{red}{\vec{b}}=(x_2,y_2)$, su producto cruzado se calcula como se muestra a continuación en la [ecuación &eq-producto-cruz;][#eq-producto-cruz]. Los componentes $x_1$ e $y_1$ del vector $\textcolor{blue}{\vec{a}}$ se ponen como primer fila en una matriz, y los componentes $x_2$ e $y_2$ del vector $\textcolor{red}{\vec{b}}$ como segunda. Luego, el módulo del determinante de esta matriz es la longitud de un vector $\vec{a}\times \vec{b}$ perpendicular a ambos vectores. Si tomamos el resultado del determinante sin el módulo, el signo del mismo nos indica si el vector $\vec{a}\times \vec{b}$ apunta hacia arriba o hacia abajo. Además, la longitud $|\vec{a}\times \vec{b}|$ del vector resultado es también el área del paralelogramo formado por los vectores $\textcolor{blue}{\vec{a}}$ y $\textcolor{red}{\vec{b}}$. Esto puede visualizarse gráficamente en la [figura &producto-cruzado;][#producto-cruzado].
+
+~ Equation {#eq-producto-cruz}
+\textcolor{blue}{\vec{a}} \times \textcolor{red}{\vec{b}} =
+\begin{vmatrix}
+  x_1 & y_1 \\
+  x_2 & y_2
+\end{vmatrix}
+= x_1 \cdot y_2-y_1 \cdot x_2
+~
+
+Observando con presición la [figura &producto-cruzado;][#producto-cruzado] vemos que si tomamos el signo del producto cruzado, podemos usarlo para determinar sin errores de precisión[^producto-cruz-no-precision] si un vector se encuentra en sentido _horario_ o _antihorario_ con respecto a otro. Tomando la primer componente del producto cruzado como vector de referencia, un resultado _**positivo**_ indica que el vector de la segunda componente se encuentra en sentido _**antihorario**_. Un resultado _**negativo**_ indica que el vector de la segunda componente se encuentra en sentido _**horario**_ con respecto al vector de referencia. Un caso a tener en cuenta es cuando el resultado del producto cruzado es cero. Si $\textcolor{blue}{\vec{a}} \times \textcolor{red}{\vec{b}} = 0$, entonces los vectores son colineares. Esto es, ambos se encuentran en una misma línea y el ángulo entre ellos es cero. Habiendo observado esto, el cálculo del ángulo $\alpha$ entre los vectores se hace innecesario para determinar el sentido de giro desde un vector hacia el otro.
+
+[^producto-cruz-no-precision]: En el cálculo del producto cruz no se presentan errores de precisión porque es puramente aritmética básica de números enteros: resta y producto. Sin embargo, los números enteros presentan otros problemas que hay que tener en cuenta, como por ejemplo [overflow y underflow]^en inglés^.
+
+[overflow y underflow]: https://en.wikipedia.org/wiki/Integer_overflow "Integer Overflow - Wikipedia"
+
+~ Begin Figure {#producto-cruzado; caption:"Visualización del producto cruzado. (a) el resultado _**positivo**_ del producto cruzado indica que el vector $\vec{b}$ se encuentra en sentido _**antihorario**_ con respecto a $\vec{a}$. (b) indica la situación inversa, el resultado _**negativo**_ nos dice que $\vec{a}$ se encuentra en sentido _**horario**_ con respecto a $\vec{b}$. (c) muestra la relación entre los dos resultados."}
+~ Begin SubFigureRow
+~ Begin SubFigure {padding-left:-5%;}
+~~ Snippet
+\begin{tikzpicture}
+\draw[-,fill=white!95!red](0,0)--(3,0)--(4,1)--(1,1)--cycle;
+\node at (2,0.5) {$|\textcolor{blue}{\vec{a}}\times \textcolor{red}{\vec{b}}|$};
+\draw[ultra thick,-latex,blue](0,0)--(3,0)node[midway,below]{$\vec{a}$};
+\draw[ultra thick,-latex,red](0,0)--(1,1)node[midway,above]{$\vec{b}$};
+\draw[ultra thick,-latex,blue!50!red](0,0)--(0,3)node[pos=0.7,right]{$\vec{a}\times \vec{b}$};
+\draw (0.6,0) arc [start angle=0,end angle=45,radius=0.6]
+node[pos=0.7,right]{$\alpha$};
+\end{tikzpicture}
+~~
+~ End SubFigure
+~ Begin SubFigure {padding-left: 5%;}
+~~ Snippet
+\begin{tikzpicture}
+\draw[-,fill=white!95!red](0,2)--(3,2)--(4,3)--(1,3)--cycle;
+\node at (2,2.5) {$|\textcolor{red}{\vec{b}}\times \textcolor{blue}{\vec{a}}|$};
+\draw[ultra thick,-latex,blue](0,2)--(3,2)node[midway,below]{$\vec{a}$};
+\draw[ultra thick,-latex,red](0,2)--(1,3)node[midway,above]{$\vec{b}$};
+\draw[ultra thick,-latex,blue!50!red](0,2)--(0,-0.5)node[pos=0.7,right]{$\vec{b}\times \vec{a}$};
+\draw (0.6,2) arc [start angle=0,end angle=45,radius=0.6]
+node[pos=0.7,right]{$\alpha$};
+\end{tikzpicture}
+~~
+~ End SubFigure
+~ End SubFigureRow
+~ Begin SubFigureRow
+~ Begin SubFigure
+~~ Begin Snippet
+$\textcolor{blue}{\vec{a}}\times \textcolor{red}{\vec{b}} = -\textcolor{red}{\vec{b}}\times \textcolor{blue}{\vec{a}}$
+~~ End Snippet
+~ End SubFigure
+~ End SubFigureRow
+~ End Figure
+
+### Distancia euclideana {#sec-algoritmos-geometricos-base-euclideana}
+Formalmente, la distancia euclideana $d_1$ entre dos puntos $p_1=(x_1,y_1)$ y $p_2=(x_2,y_2)$ es la longitud del vector $\overrightarrow{p_1 p_2}=(x_2-x_1,y_2-y_1)$, es decir:
+~ Equation {#eq-dist-1}
+d_1(p_1,p_2) = |\overrightarrow{p_1 p_2}| = \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
+~
+Ahora, si tenemos un tercer punto $p_3=(x_3,y_3)$ y queremos saber entre $p_2$ y $p_3$ cuál se encuentra más cerca de $p_1$, calculamos la distancia $d_2$ entre $p_1$ y $p_3$ y la comparamos con la obtenida en [#eq-dist-1]:
+~ Equation {#eq-dist-2}
+d_2(p_1,p_3) = |\overrightarrow{p_1 p_3}| = \sqrt{(x_3-x_1)^2+(y_3-y_1)^2}
+~
+Luego,
+
+- Si $d_1 > d_2 \rightarrow p_3$ está más cerca de $p_1$ que $p_2$
+- Si $d_1 < d_2 \rightarrow p_2$ está más cerca de $p_1$ que $p_3$
+- Si $d_1 == d_2 \rightarrow p_3$ está la misma distancia de $p_1$ que de $p_2$
+
+~ TexRaw
+\begin{samepage}
+~
+
+Sin embargo, como la función raíz cuadrada tiene los problemas de precisión que se hablaron anteriormente, es necesario hacer una modificación a éste método de comparación de distancias.
+> Como la función raíz cuadrada positiva es una función monótona creciente estricta[^monotona-estricta], es posible eliminarla de los cálculos de distancia **si el resultado se usará para hacer comparaciones**.
+
+~ TexRaw
+\end{samepage}
+~
+
+[^monotona-estricta]: Una función monótona creciente estricta es aquella para la cual se cumple: $x_1 > x_2 \rightarrow f(x_1) > f(x_2)$, para todo $x_1$, $x_2$.
+
+Entonces, para nuestro propósito de comparar distancias entre puntos, usaremos la [fórmula &eq-dist-1;][#eq-dist-1], sin la raíz cuadrada:
+~ Equation {#eq-dist-3}
+d'(p_1,p_2) = |\overrightarrow{p_1 p_2}| = (x_2-x_1)^2+(y_2-y_1)^2
+~
+
+### Segmento de línea {#sec-algoritmos-geometricos-base-segmento}
+
+Una **_combinación convexa_** de dos puntos distintos $p_1 = (x_1, y_1)$ y $p_2 = (x_2, y_2)$ es cualquier punto $p_3 = (x_3, y_3)$ tal que para algún $\alpha$ en el rango $0 \leq \alpha \leq 1$, tenemos que $x_3 = \alpha x_1 + (1-\alpha)x_2$ y $y_3 = \alpha y_1 + (1-\alpha)y_2$. Además escribimos que $p_3 = \alpha p_1 + (1-\alpha)p_2$. Intuitivamente, $p_3$ es cualquier punto que está en la línea que pasa por $p_1$ y $p_2$ y está en o entre $p_1$ y $p_2$ en la línea. Dados dos puntos distintos $p_1$ y $p_2$, el **_segmento de línea_** $\overline{p_1 p_2}$ es el conjunto de combinaciones convexas de $p_1$ y $p_2$. Llamamos a $p_1$ y $p_2$ los **_extremos_** del segmento $\overline{p_1 p_2}$. A veces el orden de $p_1$ y $p_2$ importa, y entonces hablamos del **_segmento dirigido_** $\overrightarrow{p_1 p_2}$. Si $p_1$ es el **_origen_** $(0,0)$, entonces podemos tratar el segmento dirigido $\overrightarrow{p_1 p_2}$ como el **_vector_** $\vec{p_2}$.
+
+#### Determinar la dirección de giro de dos segmentos consecutivos {#sec-algoritmos-geometricos-base-segmento-giro}
+
+Dados dos segmentos consecutivos $\overline{p_1 p_2}$ y $\overline{p_2 p_3}$, es decir que comparten un extremo, nos interesa saber si giran hacia la izquierda o la derecha en $p_2$. Como se muestra en la [figura &fig-segmentos-vectores;][#fig-segmentos-vectores], podemos interpretar los segmentos como los vectores  $\overrightarrow{p_1 p_2}$ y $\overrightarrow{p_2 p_3}$ trasladados al origen. Luego, con estos vectores es posible usar el [producto cruzado (&sec-algoritmos-geometricos-base-producto;)][#sec-algoritmos-geometricos-base-producto] para determinar si el giro es hacia la izquierda o hacia la derecha. Si $\overrightarrow{p_2 p_3}$ se encuentra en sentido **_antihorario_** con respecto a $\overrightarrow{p_1 p_2}$, entonces el giro de los segmentos consecutivos $\overline{p_1 p_2}$ y $\overline{p_2 p_3}$ es hacia la **_izquierda_**. Equivalentemente, si $\overrightarrow{p_2 p_3}$ se encuentra en sentido **_horario_** con respecto a $\overrightarrow{p_1 p_2}$, entonces el giro es hacia la **_derecha_**.
+
+~ Begin Figure {#fig-segmentos-vectores; caption:"(a) muestra los segmentos consecutivos $\overline{p_1 p_2}$ y $\overline{p_2 p_3}$. (b) muestra los segmentos interpretados como vectores $\overrightarrow{p_1 p_2}$ y $\overrightarrow{p_2 p_3}$. (c) muestra los vectores $\overrightarrow{p_1 p_2}$ y $\overrightarrow{p_2 p_3}$ trasladados a un mismo origen."}
+~ Begin SubFigureRow
+~ Begin SubFigure
+~~ Snippet
+\begin{tikzpicture}
+\draw[ultra thick,blue]
+  (0,0)--(1.5,0.75)
+  node[midway, above]{$\overline{p_1 p_2}$}
+  node[at start,below]{$\textcolor{black}{p_1}$}
+  node[at end,below]{$\textcolor{black}{p_2}$};
+\draw[ultra thick,red]
+  (1.5,0.75)--(2.25,2.25)
+  node[midway, right]{$\overline{p_2 p_3}$}
+  node[at end, right]{$\textcolor{black}{p_3}$};
+\end{tikzpicture}
+~~
+~ End SubFigure
+~ Begin SubFigure
+~~ Snippet
+\begin{tikzpicture}
+\draw[ultra thick,-latex,blue]
+  (0,0)--(1.5,0.75)
+  node[midway, below]{$\overrightarrow{p_1 p_2}$};
+\draw[ultra thick,-latex,red]
+  (1.5,0.75)--(2.25,2.25)
+  node[midway, right]{$\overrightarrow{p_2 p_3}$};
+\end{tikzpicture}
+~~
+~ End SubFigure
+~ End SubFigureRow
+~ Begin SubFigureRow
+~ Begin SubFigure
+~~ Snippet
+\begin{tikzpicture}
+\draw[ultra thick,-latex,blue]
+  (0,0)--(1.5,0.75)
+  node[midway, below]{$\overrightarrow{p_1 p_2}$};
+\draw[ultra thick,-latex,red]
+  (0,0)--(0.75,1.5)
+  node[midway, left]{$\overrightarrow{p_2 p_3}$};
+\end{tikzpicture}
+~~
+~ End SubFigure
+~ End SubFigureRow
+~ End Figure
+
+#### Determinar si un segmento contiene un punto {#sec-algoritmos-geometricos-base-segmento-contiene}
+Como se explicó en [(&sec-algoritmos-geometricos-base-segmento;)][#sec-algoritmos-geometricos-base-segmento], usando el concepto de combinación convexa podemos determinar si un punto $p_3 = (x_3, y_3)$ está en el segmento de línea que une a $p_1 = (x_1, y_1)$ y $p_2 = (x_2, y_2)$. El siguiente procedimiento `EN-SEGMENTO` en pseudocódigo nos dará la respuesta:
+
+~ TexRaw
+\begin{samepage}
+~
+~ Code {#cod-en-segmento; page-break-before: auto;}
+EN-SEGMENTO(\($p_1$\), \($p_2$\), \($p_3$\))
+  \(**`if`**\) \($\mbox{min}(x_1, x_2)\leq x_3 \leq \mbox{max}(x_1, x_2)$\) and \($\mbox{min}(y_1, y_2)\leq y_3 \leq \mbox{max}(y_1, y_2)$\)
+    \(**`return`**\) TRUE
+  \(**`else return`**\) FALSE
+~
+~ TexRaw
+\end{samepage}
+~
+
+#### Determinar si dos segmentos se intersecan {#sec-algoritmos-geometricos-base-segmento-intersecan}
+Para determinar si dos segmentos $\overline{p_1 p_2}$ y $\overline{p_3 p_4}$ se intersecan, debemos verificar si uno de los segmentos atraviesa la línea que contiene al otro. Un segmento $\overline{p_1 p_2}$ **_atraviesa_** una línea si el punto $p_1$ está de un lado de la línea y $p_2$ está del otro. Un caso particular a tener en cuenta es si $p_1$ o $p_2$ se encuentra directamente sobre la línea. Estas situaciones pueden verse graficadas en la [figura &fig-segmentos-intersecan;][#fig-segmentos-intersecan]. Entonces, dos segmentos de línea se intersecan sí y sólo si una (o ambas) de las siguientes condiciones se cumplen:
+
+1. Cada segmento atraviesa la línea que contiene al otro.
+1. Un extremo de un segmento está sobre el otro segmento.
+
+El siguiente procedimiento `SEGMENTOS-SE-INTERSECAN` determina si dos segmentos $\overline{p_1 p_2}$ y $\overline{p_3 p_4}$ se intersecan, usando el procedimiento [`EN-SEGMENTO`][#cod-en-segmento] definido en la sección anterior y un procedimiento `DIRECCION` auxiliar que implementa el cálculo del [producto cruzado][#sec-algoritmos-geometricos-base-producto] para los vectores $\overrightarrow{p_1 p_2}$ y $\overrightarrow{p_1 p_3}$ recibidos por parámetro.
+
+~ TexRaw
+\begin{samepage}
+~
+
+~ Code {#cod-segmentos-intersecan}
+SEGMENTOS-SE-INTERSECAN(\($p_1$\), \($p_2$\), \($p_3$\), \($p_4$\))
+  \($d_1$\) = DIRECCION(\($p_3$\), \($p_4$\), \($p_1$\))
+  \($d_2$\) = DIRECCION(\($p_3$\), \($p_4$\), \($p_2$\))
+  \($d_3$\) = DIRECCION(\($p_1$\), \($p_2$\), \($p_3$\))
+  \($d_4$\) = DIRECCION(\($p_1$\), \($p_2$\), \($p_4$\))
+
+  \(**`if`**\) ((\($d_1 > 0$\) and \($d_2 < 0$\)) or (\($d_1 < 0$\) and \($d_2 > 0$\))) and
+      ((\($d_3 > 0$\) and \($d_4 < 0$\)) or (\($d_3 < 0$\) and \($d_4 > 0$\)))
+    \(**`return`**\) TRUE
+  \(**`elseif`** $d_1 == 0$\) and EN-SEGMENTO(\($p_3$\), \($p_4$\), \($p_1$\))
+    \(**`return`**\) TRUE
+  \(**`elseif`** $d_2 == 0$\) and EN-SEGMENTO(\($p_3$\), \($p_4$\), \($p_2$\))
+    \(**`return`**\) TRUE
+  \(**`elseif`** $d_3 == 0$\) and EN-SEGMENTO(\($p_1$\), \($p_2$\), \($p_3$\))
+    \(**`return`**\) TRUE
+  \(**`elseif`** $d_4 == 0$\) and EN-SEGMENTO(\($p_1$\), \($p_2$\), \($p_4$\))
+    \(**`return`**\) TRUE
+  \(**`else return`**\) FALSE
+
+DIRECCION(\($p_1$\), \($p_2$\), \($p_3$\))
+  \(**`return`** $(p_3 - p_1) \times (p_2 - p_1)$\)
+~
+
+~ TexRaw
+\end{samepage}
+~
+
+~ Begin Figure {#fig-segmentos-intersecan; caption:"(a) muestra dos segmentos que se intersecan. Se puede observar que cada punto de un segmento se encuentra de un lado distinto de la línea del otro segmento. (b) y (c) muestran el caso particular en un extremo de un segmento se encuentra sobre el otro.";}
+~ Begin SubFigureRow
+~ Begin SubFigure {padding-left: -10%;}
+~~ Snippet
+\begin{tikzpicture}
+\draw[ultra thick,blue]
+  (0,0)--(2,2)
+  node[at start, below]{$p_1$}
+  node[at end, above]{$p_2$};
+\draw[ultra thick,red]
+  (0,2)--(2,0)
+  node[at start, above]{$p_3$}
+  node[at end, below]{$p_4$};
+\end{tikzpicture}
+~~
+~ End SubFigure
+~ Begin SubFigure {padding-left: 10%;}
+~~ Snippet
+\begin{tikzpicture}
+\draw[ultra thick,blue]
+  (0,0)--(2,2)
+  node[at start, below]{$p_1$}
+  node[at end, above]{$p_2$};
+\draw[ultra thick,red]
+  (1,1)--(0,2)
+  node[at start, below]{$p_3$}
+  node[at end, above]{$p_4$};
+\end{tikzpicture}
+~~
+~ End SubFigure
+~ End SubFigureRow
+~ Begin SubFigureRow
+~ Begin SubFigure
+~~ Snippet
+\begin{tikzpicture}
+\draw[ultra thick,blue]
+  (0,0)--(2,2)
+  node[at start, below]{$p_1$}
+  node[at end, above]{$p_2$};
+\draw[ultra thick,red]
+  (1,1)--(2,0)
+  node[at start, above]{$p_3$}
+  node[at end, below]{$p_4$};
+\end{tikzpicture}
+~~
+~ End SubFigure
+~ End SubFigureRow
+~ End Figure
+
+#### Determinar de qué lado de la intersección de dos segmentos se encuentra un punto {#sec-algoritmos-geometricos-base-segmento-punto-interseccion}
+
+Dados dos segmentos $\overline{p_1 p_2}$ y $\overline{p_3 p_4}$ (que sabemos que se intersecan) y un punto $p_5=(x_5,y_5)$, nos interesa saber de qué lado de la intersección se encuentra la recta vertical que pasa por $p_5$. Si usamos las ecuaciones de las rectas que contienen a $\overline{p_1 p_2}$ y $\overline{p_3 p_4}$, podemos calcular la componente $x$ del punto de intersección y luego compararla con $x_5$. Así si $x_5 < x$ entonces el punto se encuentra a la izquierda de la intersecci&oacute;n, mientras que si $x_5 > x$ el punto se encuentra a la derecha.
+
+Veamos primero la ecuaci&oacute;n de la recta que pasa por $p_1=(x_1,y_1)$ y $p_2=(x_2,y_2)$:
+
+~ Math
+\frac{x-x_1}{x_2-x_1} = \frac{y-y_1}{y_2-y_1}
+~
+
+Si despejamos $y$ llegamos a:
+
+~ Math
+y = \frac{x-x_1}{x_2-x_1}\cdot (y_2-y_1)+y_1
+~
+
+Ahora distribuimos el factor $(y_2-y_1)$:
+
+~ Math
+y = x\frac{y_2-y_1}{x_2-x_1}-x_1\frac{y_2-y_1}{x_2-x_1}+y_1
+~
+
+~ Equation {#eq-ecuacion-recta-1}
+y = x\cdot m_1-x_1\cdot m_1+y_1 \qquad \mbox{con} \qquad m_1 = \frac{y_2-y_1}{x_2-x_1}
+~
+
+Repetimos el mismo procedimiento para encontrar la ecuación de la recta que pasa por $p_3=(x_3,y_3)$ y $p_4=(x_4,y_4)$ y llegamos al siguiente resultado:
+
+~ Equation {#eq-ecuacion-recta-2}
+y = x\cdot m_2-x_3\cdot m_2+y_3 \qquad \mbox{con} \qquad m_2 = \frac{y_4-y_3}{x_4-x_3}
+~
+
+Como nuestro objetivo es encontrar el punto de intersección de las dos rectas, igualamos los resultados obtenidos en [&eq-ecuacion-recta-1;][#eq-ecuacion-recta-1] y [&eq-ecuacion-recta-2;][#eq-ecuacion-recta-2] y despejamos la componente $x$:
+
+~ Math
+x\cdot m_1-x_1\cdot m_1+y_1 = x\cdot m_2-x_3\cdot m_2+y_3
+~
+~ Math
+x\cdot m_1 - x\cdot m_2  = x_1\cdot m_1-x_3\cdot m_2+y_3-y_1
+~
+~ Math
+x\cdot (m_1 - m_2)  = x_1\cdot m_1-x_3\cdot m_2+y_3-y_1
+~
+~ Math
+x\cdot (m_1 - m_2)  = x_1\cdot m_1-x_3\cdot m_2+y_3-y_1
+~
+~ Equation {#eq-x-interseccion}
+x  = \frac{x_1\cdot m_1-x_3\cdot m_2+y_3-y_1}{m_1 - m_2}
+~
+
+Ahora que ya encontramos la componente $x$ del punto de intersección de los segmentos $\overline{p_1 p_2}$ y $\overline{p_3 p_4}$, sólo nos resta compararla con $x_5$ para saber de qué lado de la intersección se encuentra $p_5$. Sin embargo aquí se presenta nuevamente el problema de precisión en los cálculos, ya que la [ecuación &eq-x-interseccion;][#eq-x-interseccion] tiene división. Veamos si es posible solucionar este problema de precisión, evitando la división. Primero nos interesa saber si $x < x_5$, por lo que, según la [ecuación &eq-x-interseccion;][#eq-x-interseccion], tenemos:
+
+~ Math
+\frac{x_1\cdot m_1-x_3\cdot m_2+y_3-y_1}{m_1 - m_2}
+< x_5
+~
+
+Multiplicando ambos lados de la inecuación por $m_1 - m_2$ nos queda:
+
+~ Equation {#eq-inecuacion-1}
+x_1\cdot m_1-x_3\cdot m_2+y_3-y_1
+< x_5 \cdot (m_1 - m_2)
+~
+
+Recordemos que $m_1 = \frac{y_2-y_1}{x_2-x_1}$ y $m_2 = \frac{y_4-y_3}{x_4-x_3}$, por lo que aún nos queda librarnos de las divisiones. Volviendo a reemplazar los valores de $m_1$ y $m_2$ en [&eq-inecuacion-1;][#eq-inecuacion-1] nos queda:
+
+~ Math
+x_1\cdot \frac{y_2-y_1}{x_2-x_1}-x_3\cdot \frac{y_4-y_3}{x_4-x_3}+y_3-y_1
+< x_5 \cdot \left(\frac{y_2-y_1}{x_2-x_1} - \frac{y_4-y_3}{x_4-x_3}\right)
+~
+
+O lo que es equivalente:
+
+~ Math
+\frac{x_1\cdot(y_2-y_1)}{x_2-x_1}-\frac{x_3\cdot(y_4-y_3)}{x_4-x_3}+\frac{y_3-y_1}{1}
+< \frac{x_5 \cdot(y_2-y_1)}{x_2-x_1} - \frac{x_5 \cdot(y_4-y_3)}{x_4-x_3}
+~
+
+Sumamos y restamos las fracciones de cada lado:
+
+~ Equation {#eq-inecuacion-2}
+\frac{
+  T_1 - T_2 + T_3
+}{(x_2 - x_1)\cdot(x_4-x_3)}
+< 
+\frac{
+  T_4 - T_5
+}{(x_2 - x_1)\cdot(x_4-x_3)}
+~
+
+Con
+~ Begin Center
+~ Snippet
+\begin{align*}
+  T_1 &= (x_4-x_3)\cdot(y_2-y_1)\cdot x_1 \\
+  T_2 &= (x_2-x_1)\cdot (y_4-y_3)\cdot x_3 \\
+  T_3 &= (x_2-x_1)\cdot(x_4-x_3)\cdot(y_3-y_1) \\
+  T_4 &= x_5\cdot(x_4-x_3)\cdot(y_2-y_1) \\
+  T_5 &= x_5\cdot(x_2-x_1)\cdot(y_4-y_3)
+\end{align*}
+~
+~ End Center
+
+Si observamos el denominador de cada lado de la [inecuación &eq-inecuacion-2;][#eq-inecuacion-2], podemos ver que es posible eliminarlo multiplicando ambos lados por $(x_2 - x_1)\cdot(x_4-x_3)$. Hacemos esto y llegamos a la [comparación &eq-inecuacion-3;][#eq-inecuacion-3], que nos permite saber si $x < x_5$ sólo con sumas, restas y multiplicaciones y, por lo tanto, sin errores de precisión.
+
+~ Equation {#eq-inecuacion-3}
+T_1 - T_2 + T_3 < T_4 - T_5
+~
+Con
+~ Begin Center
+~ Snippet
+\begin{align*}
+  T_1 &= (x_4-x_3)\cdot(y_2-y_1)\cdot x_1 \\
+  T_2 &= (x_2-x_1)\cdot (y_4-y_3)\cdot x_3 \\
+  T_3 &= (x_2-x_1)\cdot(x_4-x_3)\cdot(y_3-y_1) \\
+  T_4 &= x_5\cdot(x_4-x_3)\cdot(y_2-y_1) \\
+  T_5 &= x_5\cdot(x_2-x_1)\cdot(y_4-y_3)
+\end{align*}
+~
+~ End Center
+
+#### Determinar si un segmento se encuentra por encima o por debajo de otro en un punto{#sec-algoritmos-geometricos-base-segmento-orden}
+
+Dado un punto $p_0 = (x_0, y_0)$ y dos segmentos $\overline{p_1 p_2}$ y $\overline{p_3 p_4}$, nos interesa saber qué segmento se encuentra por encima del otro en la línea vertical definida por la componente $x$ de $p_0$. Para esto vamos a usar algunos de los conceptos definidos previamente.
+
+Primero, tenemos que diferenciar dos casos: los segmentos pueden intersecar en un punto o no. Para determinar esto, podemos usar lo visto en la [sección &sec-algoritmos-geometricos-base-segmento-intersecan;][#sec-algoritmos-geometricos-base-segmento-intersecan], dónde se explicó cómo determinar si dos segmentos intersecan o no. Veamos cada caso por separado:
+
+- **Los segmentos se intersecan:** en este caso, basta con ver de qué lado de la intersección se encuentra $p_0$ (como se explicó en la [sección anterior][#sec-algoritmos-geometricos-base-segmento-punto-interseccion]). Si se encuentra a la izquierda, tomamos los extremos izquierdos de cada segmento y comparamos sus coordenadas con respecto al eje $y$. Si $p_0$ se encuentra del lado derecho de la intersección, entonces tomamos los extremos derechos y también comparamos sus coordenadas con respecto al eje $y$. El segmento que tenga el extremo con mayor componente $y$ será el que se encuentre por encima.
+- **Los segmentos _no_ se intersecan:** si los segmentos no se intersecan, tomamos $p_i$ como el extremo más a la izquierda de todos los extremos de los dos segmentos. Luego, tomamos dos vectores, siendo $\vec{v_1}$ el formado por $p_i$ y el extremo derecho del segmento al que pertenece $p_i$, y $\vec{v_2}$ el formado por $p_0$ y el extremo izquierdo del otro segmento. Luego, si $\vec{v_2}$ se encuentra en sentido _antihorario_ con respecto a $\vec{v_1}$, entonces el segmento al que _no_ pertenece $p_i$ está por encima. Si $\vec{v_2}$ está en sentido _horario_, entonces el segmento al que _no_ pertenece $p_i$ está por debajo.
+
+## Detectar intersección entre varios segmentos {#sec-algoritmos-geometricos-interseccion}
+
+En esta sección se presenta un algoritmo que, dados $\mbox{n}$ segmentos, de los cuales ninguno debe ser vertical, determina si existe o no al menos una intersección entre ellos. 
+
+El algoritmo usa una técnica conocida como _barrido_. Esta técnica consiste en mover una línea vertical, usualmente de izquierda a derecha, por el plano que forman los ejes coordenados. La _línea de barrido_ frena cuando encuentra un _punto de evento_, y allí se hacen las comprobaciones para detectar una intersección.
+
+En este algoritmo, los puntos de eventos son los extremos de los segmentos. Por esto, es necesario como primer paso ordenar los extremos de los segmentos, de izquierda a derecha y, en caso de haber más de un extremo para una misma coordenada del eje $x$, de abajo hacia arriba.
+
+El algoritmo matiene un orden entre los segmentos. En este orden, dos segmentos son comparables sólo si la línea de barrido se encuentra sobre ellos. Es decir, para cada coordenada del eje $x$, todos los segmentos que pasan por la línea vertical son comparables entre ellos. Un segmento $a$ se considera _más grande_ que otro segmento $b$ si éste último se encuentra _por debajo_ de él. Para hacer esta comparación usamos la técnica mostrada previamente en la [sección &sec-algoritmos-geometricos-base-segmento-orden;][#sec-algoritmos-geometricos-base-segmento-orden], usando como punto de referencia cualquiera que esté sobre la línea de barrido actual.
+
+~ Begin Figure {#fig-segments-intersect; caption:"(a) en la línea de barrido $r$ sólo son comparables $a$ y $c$, siendo $a > c$. En la línea de barrido $t$ sólo son comparables $a$, $b$ y $c$, siendo $a > b > c$. De manera similar, en la línea de barrido $u$ sólo son comparables $b$ y $c$, siendo $b > c$. El segmento $d$ nunca resulta comparable con ningún otro. (b) en esta figura se puede apreciar como cuando dos segmentos intersecan, son consecutivos al menos una vez. En el ejemplo, $e$ y $f$ _no_ son consecutivos en $v$ pero sí lo son en $z$. En $w$ dejan de serlo nuevamente. Además, se ve cómo inmediatamente a la izquieda de la intersección, en toda el área marcada en gris, es $e > f$, mientras que a la derecha es $f > e$. Como intersecan, cambian de orden."}
+~ Begin SubFigureRow
+~ Begin SubFigure
+![Segments_intersect_img1]
+~ End SubFigure
+~ Begin SubFigure
+![Segments_intersect_img2]
+~ End SubFigure
+~ End SubFigureRow
+~ End Figure
+
+[Segments_intersect_img1]: images/Segments_intersect_img1.png { width:auto; max-width:90% }
+[Segments_intersect_img2]: images/Segments_intersect_img2.png { width:auto; max-width:90% }
+
+
+Como se aprecia en la figura anterior, si dos segmentos se intersecan, necesariamente cambian de orden según lo establecido previamente. Más aún, dos segmentos $a$ y $b$ se intersecan _sólo si_ en algún punto de evento, $a$ y $b$ son consecutivos. Esto puede apreciarse también en la figura anterior.
+
+Dado un punto de evento, es necesario saber con qué otros segmentos es comparable el segmento al que pertenece. Para esto, mantenemos una estructura de árbol binario de búsqueda. Cuando la línea de barrido pasa por el extremo izquierdo de un segmento, este es agregado al árbol. Cuando la línea de barrido pasa por el extremo derecho, el segmento es eliminado del árbol.
+
+Como ya se dijo más arriba, dos segmentos se intersecan sólo si en algún punto de evento son consecutivos. Cuando la línea de barrido se topa con el extremo izquierdo de un segmento, luego de agregarlo al árbol de búsqueda, vemos si existe algún otro segmento inmediatamente por encima o por debajo de él en ese punto, es decir vemos si tiene segmentos que sean consecutivos en el orden establecido. Si existe alguno, verificamos si interseca con el segmento nuevo. Al encontrarse la línea de barrido con el extremo derecho de un segmento, debemos eliminarlo del árbol de búsqueda. Antes de eliminarlo, verificamos si los segmentos anterior y siguiente a él intersecan, ya que al eliminarlo quedarían en orden consecutivo entre ellos.
+
+Para ordenar el árbol de búsqueda, usamos como criterio de comparación la técnica mostrada previamente en la [sección &sec-algoritmos-geometricos-base-segmento-orden;][#sec-algoritmos-geometricos-base-segmento-orden], donde se explica cómo determinar si un segmento se encuentra por encima o por debajo de otro.
+
+### Algoritmo {#sec-algoritmos-geometricos-interseccion-algoritmo}
+El siguiente pseudocódigo muestra la función `ALGUN-SEGMENTO-INTERSECA` que implementa el algoritmo descrito arriba:
+
+```
+ALGUN-SEGMENTO-INTERSECA(L)
+ 1 \($T = \emptyset$\)
+ 2 ordenar los extremos de los segmentos de la lista L de
+     izquierda a derecha, poniendo primero los extremos
+     izquierdos de los segmentos en caso de coincidir las
+     coordenadas \($x$\) y, en caso de ser ambos extremos
+     izquierdos, decidiendo por la coordenada \($y$\) de
+     abajo hacia arriba.
+ 3 \(**`for`**\) cada punto \($p$\) en la lista ordenada de extremos
+ 4   \(**`if`** $p$\) es el extremo izquierdo de un segmento \($s$\)
+ 5     INSERTAR(T, \($s$\))
+ 6     \(**`if`**\) (ARRIBA(T, \($s$\)) existe e interseca a \($s$\))
+           or (ABAJO(T, \($s$\)) existe e interseca a \($s$\))
+ 7       \(**`return`**\) TRUE
+ 8   \(**`if`** $p$\) es el extremo derecho de un segmento \($s$\)
+ 9     \(**`if`**\) ARRIBA(T, \($s$\)) y ABAJO(T, \($s$\)) existen y
+           se intersecan entre sí
+10       \(**`return`**\) TRUE
+11     ELIMINAR(T, \($s$\))
+13 \(**`return`**\) FALSE
+```
+
+### Análisis de complejidad {#sec-algoritmos-geometricos-interseccion-complejidad}
+Si la lista de entrada `L` tiene $\mbox{n}$ elementos, entonces `ALGUN-SEGMENTO-INTERSECA` se ejecuta en $O(\mbox{n} \log(\mbox{n}))$. La línea 1 toma $O(1)$, ya que es inicializar un árbol vacío. La línea 2 se compone de tres operaciones: primero extraer los extremos de cada segmento en L ($O(\mbox{n})$) y agregarlos a una lista de extremos ($O(1)$), y por último ordenar la lista según el criterio ($O(\mbox{n} \log(\mbox{n}))$ usando merge sort). El bucle **`for`** de las líneas 3-11 se ejecuta una vez por cada extremo. Como hay $2n$ extremos, se ejecuta como máximo $2n$ veces. El cuerpo del bucle toma $O(\log(\mbox{n}))$ en ejecutarse, ya que cada operación en el árbol $T$ toma $O(\mbox{n} \log(\mbox{n}))$ usando un árbol de búsqueda balanceado (como por ejemplo el Árbol RB (o Red Black Tree en inglés)). La comprobación para saber si dos segmentos intersecan se ejecuta en $O(1)$ usando el método descrito en la [sección &sec-algoritmos-geometricos-base-segmento-intersecan;][#sec-algoritmos-geometricos-base-segmento-intersecan]. El tiempo total es entonces $O(\mbox{n} \log(\mbox{n}))$.
+
+## Encontrar polígono convexo que encierra a $n$ puntos {#sec-algoritmos-geometricos-poligono}
+Dado un conjunto $Q$ de puntos, nos interesa ahora encontrar el polígono convexo $P$ más chico que los encierre a todos. Cada punto de $Q$ debe quedar en el interior o en el borde de $P$. Asumimos aquí que cada punto de $Q$ es único, es decir no se repiten, y que hay al menos tres puntos que no son colineares. La siguiente figura muestra un ejemplo de polígono convexo que encierra a un conjunto de puntos.
+
+~ Figure {#fig-convex-hull; caption: "Polígono convexo más chico que encierra a todos los puntos $p_0-p_{12}$"}
+![ConvexHull]
+~
+[ConvexHull]: images/ConvexHull.png { width:auto; max-width:90% }
+
+A continuación se muestran dos algoritmos que encuentran los puntos que forman este polígono, en orden antihorario. El primero, Graham Scan, se ejecuta en tiempo $O(\mbox{n} \log(\mbox{n}))$, siendo $\mbox{n}$ la cantidad de puntos en $Q$. El segundo, Jarvis March, se ejecuta en $O(\mbox{n}\,h)$, siendo $h$ la cantidad de puntos en el polígono $P$. Cada vértice de $P$ es también un punto de $Q$, ambos algoritmos explotan esta propiedad recorriendo dichos puntos y decidiendo cuál tomar y cuál no. 
+
+### Graham Scan {#sec-algoritmos-geometricos-poligono-graham}
+Este algoritmo recorre los puntos en sentido antihorario, comenzando por el que se encuentra más abajo (o el más a la izquierda en caso que más de uno se encuentren en el mismo nivel). Cada punto es insertado exactamente una vez en una pila $S$. Eventualmente, cada punto que no pertenezca al polígono que encierra a todos los puntos en $Q$ es eliminado de $S$. Cuando el algoritmo termina, la pila $S$ contiene exactamente los vértices del polígono $P$ en orden antihorario de su aparición en el borde.
+
+#### Algoritmo {#sec-algoritmos-geometricos-poligono-graham-algoritmo}
+El procedimiento `GRAHAM-SCAN` mostrado a continuación implementa el algoritmo descrito previamente y llama a las funciones `TOPE(\($S$\))` y `SIGUIENTE-TOPE\($S$\)` que devuelven el tope de la pila y el elemento siguiente al tope de la pila, respectivamente.
+
+```
+GRAHAM-SCAN(\($Q$\))
+ 1 sea \($p_0$\) el punto en \($Q$\) con la coordenada \($y$\) mínima, o el
+     más a la izquierda en caso de empate.
+ 2 sean \($\langle p_1, p_2, \dots, p_m\rangle$\) los puntos restantes en
+     \($Q$\), ordenados de menor a mayor según el ángulo polar que forman
+     aldedor de \($p_0$\) (si más un punto tiene el mismo ángulo, eliminar
+     todos menos el más lejano a \($p_0$\))
+ 3 sea \($S$\) una pila vacía
+ 4 INSERTAR(\($p_0$\), \($S$\))
+ 5 INSERTAR(\($p_1$\), \($S$\))
+ 6 INSERTAR(\($p_2$\), \($S$\))
+ 7 \(**`for`** $i = 3$ **hasta** $m$\)
+ 8   \(**while**\) el ángulo formado por los puntos SIGUIENTE-TOPE(\($S$\)),
+        TOPE(\($S$\)) y \($p_i$\) haga un giro que \(_`no`_\) sea a la
+        izquierda
+ 9     ELIMINAR(\($S$\))
+10   INSERTAR(\($p_i$\), \($S$\))
+11 \(**`return`** $S$\)
+```
+
+#### Análisis de complejidad {#sec-algoritmos-geometricos-poligono-graham-complejidad}
+El algoritmo se ejecuta en tiempo $O(\mbox{n} \log(\mbox{n}))$. La línea 1 se ejecuta en $O(\mbox{n})$ ya que es necesario recorrer todos los puntos para encontrar el mínimo. La línea 2 se ejecuta en $O(\mbox{n} \log(\mbox{n}))$, hay dos operaciones: primero se ordenan los puntos ($O(\mbox{n} \log(\mbox{n}))$ usando merge sort) y luego se eliminan los que tienen el mismo ángulo polar dejando el más lejano ($O(\mbox{n})$, se recorren los puntos ya ordenados para eliminar repetidos). El cálculo explícito del ángulo polar no es necesario si se realizan comparaciones entre los ángulos como se explicó en la [sección &sec-algoritmos-geometricos-base-producto;][#sec-algoritmos-geometricos-base-producto]. Las líneas 3-6 son operaciones $O(1)$. El bucle **`for`** de las líneas 7 a 10 itera una vez por cada punto de la subsecuencia $\langle p_3, p_4, \dots, p_m\rangle$. El bucle **`while`** se ejecuta como máximo $m-2$ veces en toda la ejecución del algoritmo[^foot-while-on], por lo que, en total, su ejecución es $O(\mbox{n})$. Luego, el bucle **`for`** es $O(\mbox{n})$ y la ejecución completa del algoritmo `GRAHAM-SCAN` es $O(\mbox{n} \log(\mbox{n}))$, siendo dominada por el ordenamiento inicial de los puntos.
+
+[^foot-while-on]: Como el bucle **`while`** sólo realiza operaciones `ELIMINAR` en la pila, necesariamente debe ejecutarse como máximo (durante toda la ejecución del algoritmo) la cantidad de elementos que se agregan a la pila. En la pila se agregan $m$ elementos, de los cuales dos no se eliminan nunca. Por esto, la cantidad de ciclos _totales_ del bucle es $m-2$.
+
+### Jarvis March {#sec-algoritmos-geometricos-poligono-jarvis}
+Este es otro algoritmo para calcular el polígono convexo más chico $P$ que encierra a todos los puntos del conjunto $Q$. Jarvis March se basa en una técnica llamada _gift wrapping_ en inglés, que consiste en ir "envolviendo" los puntos desde el exterior, primero desde el punto más bajo hasta llegar al más alto (_cadena derecha_) y luego desde el más alto hasta el más bajo (_cadena izquierda_). 
+
+Primero, se deben encontrar los puntos $p_a$ y $p_b$ más alto y más bajo, respectivamente. En caso de empate en sus coordenadas $y$, se toma el punto de más a la izquierda para $p_b$ y el de más a la derecha para $p_a$. Para construir la cadena _derecha_, debemos empezar por $p_b$ y buscar el punto que forme el menor ángulo con respecto a $p_b$ y una línea horizontal hacia la derecha de él. Luego, repetimos la búsqueda pero con el punto encontrado anteriormente. Tanto $p_b$ como todos los puntos encontrados hasta llegar a $p_a$ forman la _cadena derecha_ del polígono $P$. Para la _cadena izquierda_ repetimos el mismo procedimiento, pero esta vez empezando con $p_a$ y calculando los ángulos con respecto a la línea horizontal que se extiende hacia la izquierda de $p_a$. Una vez que se alcance $p_b$, la cadena izquierda estará completa.
+
+#### Algoritmo {#sec-algoritmos-geometricos-poligono-jarvis-algoritmo}
+A continuación se muestra en pseudocódigo la función `JARVIS-MARCH`, que implementa el algoritmo descrito arriba. El algoritmo recibe como parámetro una lista $Q$ con los puntos de entrada y produce una lista $P$ con los puntos que pertenecen al polígono. Para realizar las comparaciones necesarias para encontrar los mínimos en las líneas 7 y 13, se pueden usar los métodos descritos en las secciones [#sec-algoritmos-geometricos-base-producto] y [#sec-algoritmos-geometricos-base-segmento-contiene]. Los métodos `INSERTAR` y `ELIMINAR` insertan y eliminan elementos de las listas, respectivamente. La variable $e$ se vuelve `TRUE` sólo cuando el punto más alto $p_a$ es alcanzado. En dicho punto, se debe invertir el lado para el cual se calculan los ángulos.
+
+```
+JARVIS-MARCH(Q)
+ 1 \($p_a =$\) el punto más alto de \($Q$\), tomando el más
+      hacia la derecha en caso de empate
+ 2 \($p_b =$\) el punto más bajo de \($Q$\), tomando el más
+      hacia la izquierda en caso de empate
+ 3 \($P = \emptyset$\)
+ 4 \($p = p_b$\)
+ 5 \($e =$\) FALSE
+ 6 \(**`while`** `(`$p$\) no sea \($p_b$\)) or (\($e$\) sea FALSE)
+ 7   INSERTAR(\($P$\), \($p$\))
+ 8   \(**`if`** $e$\) es FALSE
+ 9     \($p =$\) el punto de \($Q$\) con mínimo ángulo con
+          respecto al \($p$\) actual, hacia la derecha
+10     \(**`if`** $p$\) es \($p_a$\)
+11       \($e =$\) TRUE
+12   \(**`else`**\)
+13     \($p =$\) el punto de \($Q$\) con mínimo ángulo con
+          respecto al \($p$\) actual, hacia la izquierda
+14   ELIMINAR(\($Q$\), \($p$\))
+15 \(**`return`** $P$\)
+```
+
+#### Análisis de complejidad {#sec-algoritmos-geometricos-poligono-jarvis-complejidad}
+
+El algoritmo se ejecuta en $O(\mbox{n}\,h)$, siendo $h$ la cantidad de vértices que hay en el polígono $P$. Las líneas 1 y 2 se ejecutan cada una en $O(\mbox{n})$, porque realizan una búsqueda lineal. Las líneas 3-5 tienen tiempo $O(1)$. El bucle **`while`** de las líneas 6-14 se ejecuta exactamente $h$ veces, una vez por cada vértice del polígono $P$. En el interior del bucle se inserta el punto $p$ actual a $P$ ($O(1)$), se busca el próximo punto que pertenezca a $P$ (el de menor ángulo con respecto a $p$, esta operación de búsqueda lineal se realiza en $O(\mbox{n}$) y por último se elimina el nuevo punto de $P$ de la lista $Q$ ($O(1)$). El cuerpo del bucle, por lo tanto tiene una complejidad temporal $O(\mbox{n})$ y se ejecuta $h$ veces. Finalmente, el tiempo de ejecución final del algoritmo `JARVIS-MARCH` es $O(\mbox{n}\,h)$.
+
+## Encontrar los puntos más cercanos {#sec-algoritmos-geometricos-puntos}
+En esta sección veremos un algoritmo para, dado un conjunto $Q$ de puntos, encontrar los dos puntos que se encuentran más cercanos. El algoritmo trivial de búsqueda por fuerza bruta toma $O(\mbox{n}^2)$, ya que mira todos los posibles pares de puntos que se pueden formar con el conjunto de entrada. El algoritmo que se presenta aquí se basa en la técnica _divide y conquista_, y toma $O(\mbox{n} \log{n})$. Para lograr esta complejidad temporal, el algoritmo recibe como entrada dos arreglos: $X$ que contienen los puntos ordenados en forma creciente según su coordenada $x$, e $Y$ que contiene todos los puntos _sin ordenar_. En cada llamada recursiva, el algoritmo divide el espacio de búsqueda para las coordenadas $x$ en dos, por lo que es necesario que $X$ esté ordenado previamente. Esta restricción no aplica al arreglo $Y$, ya que el mismo será ordenado durante la propia ejecución del algoritmo empleando _merge sort_.
+
+En cada llamada recursiva, el algoritmo verifica si la cantidad de puntos es $|X| \leq 3$ y, en caso que lo sea, realiza la búsqueda de los dos puntos más cercanos por fuerza bruta y los retorna. Además, en este paso, el arreglo $Y$ también es ordenado por fuerza bruta. Si $|X| > 3$, se utiliza la técnica _divide y conquista_ de la siguiente manera:
+
+- **Divide:** Se toman las $\frac{n}{2}$ primeras posiciones de los arreglos $X$ e $Y$ y con ellas se crean los arreglos $X_i$ e $Y_i$. Los elementos restantes de cada arreglo se usan para crear dos arreglos $X_d$ e $Y_d$. Es importante remarcar que sobre el arreglo $X$ se está realizando la división en dos para la _búsqueda_ y sobre el arreglo $Y$ para su _ordenamiento_, ya que lo necesitaremos en el último paso del algoritmo.
+
+- **Conquista:** Ahora se hacen dos llamadas recursivas al algoritmo. La primera con $X_i$ e $Y_i$, y la segunda con $X_d$ e $Y_d$. Estos llamados recursivos realizan dos tareas: devuelven dos pares de puntos $\delta_i$ y $\delta_d$, que son los más cercanos para el espacio de búsqueda izquierdo y derecho respectivamente, y ordena el arreglo de puntos $Y$ según sus coordenadas $y$ de forma creciente. Tomemos ahora $\delta = \mbox{el par de puntos con menor distancia entre }\delta_i$ $\mbox{y }\delta_d$.
+
+- **Combina:** En este paso se combinan de forma ordenada los arreglos $Y_i$ e $Y_d$ en el arreglo $Y$, que ahora quedará ordenado. Luego, debemos tener en cuenta que, si bien $\delta$ es el par de puntos más cercano entre los puntos de $X_i$ y $X_d$, puede que haya un par de puntos con distancia $< |\delta|$ y que uno de los puntos del par se encuentre en $X_i$ y el otro en $X_d$. Si existe un par con distancia $< |\delta|$, necesariamente deben estar a distancia $|\delta|$ como máximo de la línea $l$ que dividió los puntos en dos en el primer paso. Por esto, haremos una nueva búsqueda restringida a la zona de ancho $2|\delta|$ centrada en la línea $l$. Para esto, seguimos los siguientes pasos:
+ 1. Se crea un arreglo $Y'$, que es el arreglo $Y$ con todos los puntos que no estén en la zona de ancho $2|\delta|$ removidos. El arreglo $Y'$ está ordenado por la coordenada $y$, tal como el arreglo $Y$.
+ 1. Por cada punto $p$ en el arreglo $Y'$, se intentan buscar los puntos en $Y'$ que estén a distancia $|\delta|$ como máximo. De todos ellos, nos quedamos con el más cercano y denominamos al par que forma con $p$, $\delta'$. Por propiedades geométricas, sólo es necesario ver los 7 puntos que le siguen a $p$ en el arreglo $Y'$.
+ 1. Si $|\delta'| < |\delta|$, entonces el par más cercano estaba repartido entre los arreglos $X_i$ y $X_d$. Devolver $\delta'$ en ese caso y $\delta$ en caso contrario.
+
+### Algoritmo {#sec-algoritmos-geometricos-puntos-algoritmo}
+En el siguiente pseudocódigo se muestra la función `PUNTOS-MAS-CERCANOS`, que recibe como parámetros los arreglos $X$ e $Y$ e implementa el algoritmo descrito arriba, junto con otras funciones auxiliares.
+
+```
+PUNTOS-MAS-CERCANOS(\($X$\), \($Y$\))
+ 1 \(**`if`**\) \($\mid X\mid\leq 3$\)
+ 2   ORDENAR-Y(\($Y$\))
+ 3   \(**`return`**\) FUERZA-BRUTA(\($X$\))
+ 4 \($m = \frac{\mid X\mid}{2}$\)
+ 5 \($X_i = X[0 .. m]$\)
+ 6 \($Y_i = Y[0 .. m]$\)
+ 7 \($X_d = X[\mid X\mid-m .. \mid X\mid-1]$\)
+ 8 \($Y_d = Y[\mid X\mid-m .. \mid X\mid-1]$\)
+ 9 \($\delta_i =$\) PUNTOS-MAS-CERCANOS(\($X_i$\), \($Y_i$\))
+10 \($\delta_d =$\) PUNTOS-MAS-CERCANOS(\($X_d$\), \($Y_d$\))
+11 MERGE(\($Y$\), \($Y_i$\), \($Y_d$\))
+12 \($\delta =$\) el par con distancia minima entre \($\delta_i$\) y \($\delta_d$\)
+13 \($S =$\) todos los puntos en \($Y$\) que estén a distancia horizontal
+      \($< \mid\delta\mid$\) del punto \($X[m]$\)
+14 \($\delta_s =$\) MAS-CERCANOS-TIRA(\($S$\))
+15 \(**`if`** $\mid\delta_s\mid < \mid\delta\mid$\)
+16   \(**`return`** $\delta_s$\)
+17 \(**`else`**\)
+18   \(**`return`** $\delta$\)
+```
+```
+FUERZA-BRUTA(\($X$\))
+1 \($\delta = \varnothing$\)
+2 \(**`for`**\) cada punto \($p$\) en \($X$\)
+3   \(**`for`**\) cada punto \($q$\) \(_`despues`_\) de \($p$\) en \($X$\)
+4     \(**`if`** $\delta$\) está vacío \(**o** $\mid\langle p, q\rangle\mid < \mid\delta\mid$\)
+5       \($\delta = \langle p, q\rangle$\)
+6 \(**`return`** $\delta$\)
+```
+```
+ORDENAR-Y(\($Y$\))
+1 \(**`for`**\) cada punto \($p=(x_1,y_1)$\) en \($X$\)
+2   \(**`for`**\) cada punto \($q=(x_2,y_2)$\) \(_`despues`_\) de \($p$\) en \($X$\)
+3     \(**`if`** $y_2 < y_1$\)
+4       invertir \($p$\) y \($q$\) en \($Y$\)
+```
+```
+MERGE(\($Y$\), \($Y_i$\), \($Y_d$\))
+ 1 \($i = 0$\)
+ 2 \($j = 0$\)
+ 3 \($k = 0$\)
+ 4 \(**`while`** $i < \mid Y_i\mid$ **`and`** $j < \mid Y_d\mid$\)
+ 5   \(**`if`** $Y_i[i]_y < Y_d[j]_y$\)
+ 6     \($Y[k] = Y_i[i]$\)
+ 7     \($i = i + 1$\)
+ 8   \(**`else`**\)
+ 9     \($Y[k] = Y_d[j]$\)
+10     \($j = j + 1$\)
+11   \($k = k + 1$\)
+12 \(**`for`** $i$ `hasta` $\mid Y_i\mid$\)
+13   \($Y[k] = Y_i[i]$\)
+14   \($k = k + 1$\)
+15 \(**`for`** $j$ `hasta` $\mid Y_d\mid$\)
+16   \($Y[k] = Y_d[j]$\)
+17   \($k = k + 1$\)
+```
+```
+MAS-CERCANOS-TIRA(\($S$\), \($d$\))
+1 \($\delta = \varnothing$\)
+2 \(**`for`**\) cada punto \($p$\) en \($S$\)
+3   \(**`for`**\) cada punto \($q$\) \(_`despues`_\) de \($p$\) en \($S$\)
+        \(**`and`**\) mientras que \($\mid p_y-q_y\mid < d$\)
+4     \(**`if`** $\mid\langle p, q\rangle\mid < d$\)
+5       \($\delta = \langle p, q\rangle$\)
+6       \($d = \mid\delta\mid$\)
+7 \(**`return`** $\delta$\)
+```
+
+### Análisis de complejidad {#sec-algoritmos-geometricos-puntos-complejidad}
+La función `PUNTOS-MAS-CERCANOS` se ejecuta en $O(\mbox{n} \log(\mbox{n}))$, siendo $n$ la cantidad de puntos en $X$ e $Y$. Si bien las funciones `FUERZA-BRUTA` y `ORDENAR-Y` son $O(\mbox{n}^2)$, siempre las llamamos con $n \leq 3$, por lo que las líneas 1-3 son $O(1)$. Las líneas 5 y 6 son $O(\mbox{m})$ y 6 y 7 son $O(\mbox{n}-\mbox{m})$, por lo que de 5 a 7 es todo $O(n)$. Las líneas 9 y 10 son una recurrencia que se analizará en breve. La línea 11 llama a la función `MERGE`, cuya ejecución es $O(n)$. La línea 12 es $O(1)$ y la 13 $O(n)$ ya que recorre todo el arreglo $Y$. Las líneas 15-18 son $O(1)$.
+
+Nos queda entonces pendiente el análisis de la línea 14, que llama a la función `MAS-CERCANOS-TIRA` y las líneas 9 y 10 que son una recurrencia. Veamos:
+
+- La función `MAS-CERCANOS-TIRA` puede parecer $O(\mbox{n}^2)$ a simple vista, pero en un análisis más detallado desde el punto de vista geométrico puede verse que el bucle **`for`** interior se ejecuta un número constante de veces, 7. Por lo tanto, `MAS-CERCANOS-TIRA` es $O(\mbox{n})$ y la línea 14 de `PUNTOS-MAS-CERCANOS` resulta $O(\mbox{n})$ también.
+- Para las líneas 9 y 10 tenemos la siguiente recurrencia: si $T(\mbox{n})$ es el tiempo de la función `PUNTOS-MAS-CERCANOS`, con lo analizado hasta ahora vemos que si $n \leq 3$ entonces $T(\mbox{n}) = O(1)$ y si $n > 3$ entonces $T(\mbox{n}) = 2T(\frac{\mbox{n}}{2}) + cO(\mbox{n})$. El término $2T(\frac{\mbox{n}}{2})$ viene de las dos llamadas recursivas de las líneas 9 y 10, en las cuales se procesa la mitad izquierda y derecha de los arreglos respectivamente. El término $cO(\mbox{n})$ son el resto de las operaciones, que son un número constante $c$ y toman como máximo $O(\mbox{n})$. Esta recurrencia tiene un resultado conocido, y es $O(\mbox{n} \log{\mbox{n}})$.
+
+Por lo tanto `PUNTOS-MAS-CERCANOS` se ejecuta en tiempo $O(\mbox{n} \log{\mbox{n}})$.

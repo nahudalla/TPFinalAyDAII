@@ -1,0 +1,8 @@
+#ifndef TPFINALAYDAI_RBTREE_IMPL_COLOR_HPP
+#define TPFINALAYDAI_RBTREE_IMPL_COLOR_HPP
+
+namespace algor::__detail_RBTree {
+    enum Color {RED, BLACK};
+}
+
+#endif //TPFINALAYDAI_RBTREE_IMPL_COLOR_HPP

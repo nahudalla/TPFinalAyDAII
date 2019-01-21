@@ -26,6 +26,14 @@
         animation: loadingMessageAnimation ease-in-out 1s infinite;
 
       }
+
+      #loadingMessage {
+        font-weight: normal;
+        font-size: 13px;
+        font-style: oblique;
+        color: #AAA;
+      }
+
       @keyframes loadingMessageAnimation {
         0% {
           color: #999;
@@ -41,27 +49,27 @@
   </head>
   <body>
     <div class="loadingMessage">
-      <span>Cargando...</span>
+      <span>Cargando...<br><span id="loadingMessage">Preparando carga...</span></span>
     </div>
     <div class="canvasContainer">
-      <canvas id="canvas"></canvas>
+      <canvas id="canvas" data-paper-resize="true"></canvas>
     </div>
     <div class="sidebar">
       <div class="header">Algoritmos</div>
       <div class="header">Herramientas</div>
       <div class="tools">
         <ul>
-          <li class="material-icons selected" title="Mover vista">pan_tool</li>
-          <li class="material-icons" title="Acercar">zoom_in</li>
-          <li class="material-icons" title="Alejar">zoom_out</li>
+          <li class="material-icons" title="Mover vista" id="panToolBtn">pan_tool</li>
+          <li class="material-icons" title="Acercar vista">zoom_in</li>
+          <li class="material-icons" title="Alejar vista">zoom_out</li>
           <li class="material-icons" title="Cargar puntos de archivo" id="loadFileBtn">open_in_browser</li>
           <li class="material-icons" title="Guardar puntos en archivo" id="saveFileBtn">save</li>
-          <li class="material-icons" title="Borrar todo" id="clearAllBtn">delete_forever</li>
+          <li class="material-icons" title="Borrar todos los puntos" id="clearAllBtn">delete_forever</li>
         </ul>
         <ul>
-          <li class="material-icons" title="Agregar">add_circle</li>
-          <li class="material-icons" title="Eliminar">remove_circle</li>
-          <li class="material-icons" title="Mover punto">open_with</li>
+          <li class="material-icons" title="Agregar punto (Shift + Click)">add_circle</li>
+          <li class="material-icons" title="Eliminar punto (Ctrl + Click)">remove_circle</li>
+          <li class="material-icons" title="Mover punto (Alt + Click)">open_with</li>
         </ul>
       </div>
       <div class="header">Puntos</div>
@@ -79,67 +87,6 @@
       <div></div>
       <span></span>
     </div>
-    <script type="text/javascript">
-      (()=>{
-        window.Module = {
-          onRuntimeInitialized: async function () {
-            loadAppStylesheet()
-                    .then(loadThirdPartyLibraries)
-                    .then(loadMainModule)
-                    .then(loadFinished)
-                    .catch((...params) => {
-                      alert("Error al cargar la aplicación. Para más información ver la consola de desarrollador.");
-                      console.error(...params);
-                    });
-          }
-        };
-
-        function loadAppStylesheet() {
-          return new Promise((resolve, reject) => {
-            let stylesheet = document.createElement('link');
-            stylesheet.rel = "stylesheet";
-            stylesheet.type = "text/css";
-            stylesheet.href = "css/app.css";
-
-            stylesheet.onload = resolve;
-            stylesheet.onerror = reject;
-
-            document.head.appendChild(stylesheet);
-          });
-        }
-
-        function loadThirdPartyLibraries() {
-          return new Promise((resolve, reject) => {
-            let script = document.createElement('script');
-            script.type = "text/javascript";
-            script.src = "third_party/download.js";
-
-            script.onload = resolve;
-            script.onerror = reject;
-
-            document.body.appendChild(script);
-          });
-        }
-
-        function loadMainModule() {
-          return new Promise((resolve, reject) => {
-            let script = document.createElement('script');
-            script.type = "module";
-            script.src = "js/main.js";
-
-            script.onload = resolve;
-            script.onerror = reject;
-
-            document.body.appendChild(script);
-          });
-        }
-
-        function loadFinished() {
-          const loadingMessage = document.querySelector(".loadingMessage");
-          document.body.removeChild(loadingMessage);
-        }
-      })();
-    </script>
-    <script type="text/javascript" src="wasm/WASMModule.js"></script>
+    <script type="text/javascript" src="js/appLoader.js"></script>
   </body>
 </html>

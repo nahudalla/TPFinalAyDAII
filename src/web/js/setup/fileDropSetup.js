@@ -47,8 +47,8 @@ function dragEnd() {
   overlay.className = "drop-file-overlay";
 }
 
-import {handleFile as loadFile} from './fileLoad.js';
-import log from './classes/Logger.js'
+import {handleFile as loadFile} from '../fileLoad.js';
+import log from '../classes/Logger.js'
 
 async function handleFile(file) {
   if(!file.name.endsWith('.txt')) {

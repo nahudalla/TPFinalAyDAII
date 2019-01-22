@@ -1,145 +1,149 @@
-import setupPanTool from '../stage/tools/Pan.js';
-import drawAxes from '../stage/Axes.js';
+import log from '../classes/Logger.js';
 
-const paper = window.paper;
+if(!("paper" in window) || !('setup' in window.paper)) {
+  log(log.FLAGS.CRITICAL, "Could not initialize canvas: Paper.js not loaded!");
+}
 
-const STAGE_OPTIONS = {
+import ZoomHandler from './stage/ZoomHandler.js';
+import AxesStage from './stage/stages/AxesStage.js';
+import ZoomedStage from './stage/stages/ZoomedStage.js';
+import NormalStage from './stage/stages/NormalStage.js';
+import InteractiveStage from './stage/stages/InteractiveStage.js';
+import Observable from './Observable.js';
+import StageTools from './stage/StageTools.js';
+
+const DEFAULT_STAGE_SETTINGS = {
+  use_active_paper_scope: false,
   grid_size: 10,
   zoom_amount: 0.2,
   zoom_timeout: 350,
   zoom_min: 0.5,
-  zoom_max: 15
+  zoom_max: 15,
+  axes_style: {
+    strokeWidth: 1,
+    strokeScaling: false,
+    strokeColor: '#000'
+  },
+  axes_padding: 5,
+  axes_line_length: 10
 };
 
-export const TOOLS = {
-  PAN: setupPanTool
-};
+let activeStage = null;
 
-class Stage {
-  constructor() {
-    this._lastZoomAmount = 0;
-    this._zoomTimeout = null;
+export const activeStageChangedEvent = new Observable();
 
-    this._axesLayer = new paper.Layer();
-    this._pointsLayer = new paper.Layer();
-    this._algorExecutionLayer = new paper.Layer();
-    this._interactiveLayer = new paper.Layer();
-
-    const onResize = ()=>{
-      this._pause();
-      this._redrawAxes();
-      this._resume();
-    };
-
-    onResize();
-
-    paper.view.on('resize', onResize);
-  }
-
-  get layer() {
-    return paper.project.activeLayer;
-  }
-
-  _pause() {
-    paper.view.pause();
-    paper.view.autoUpdate = false;
-  }
-
-  _resume() {
-    paper.view.requestUpdate();
-    paper.view.autoUpdate = true;
-    paper.view.play();
-  }
-
-  _redrawAxes() {
-    this._axesLayer.activate();
-
-    const tmp = paper.project.currentStyle;
-    paper.project.currentStyle = {
-      strokeWidth: 1,
-      strokeScaling: false
-    };
-
-    drawAxes(this);
-
-    paper.project.currentStyle = tmp;
-
-    this._interactiveLayer.activate();
-  }
-
-  _handleZoom(amount, center) {
-    clearTimeout(this._zoomTimeout);
-
-    if((amount < 0 && this._lastZoomAmount > 0)
-       || (amount > 0 && this._lastZoomAmount < 0)
-    ) {
-      this._lastZoomAmount = 0;
-    }
-
-    this._lastZoomAmount += amount;
-
-    let new_zoom = paper.view.zoom + this._lastZoomAmount;
-
-    if(new_zoom < STAGE_OPTIONS.zoom_min) new_zoom = STAGE_OPTIONS.zoom_min;
-    else if(new_zoom > STAGE_OPTIONS.zoom_max) new_zoom = STAGE_OPTIONS.zoom_max;
-
-    this._pause();
-
-    paper.view.scale(new_zoom/paper.view.zoom, center);
-    this._redrawAxes();
-
-    this._resume();
-
-    this._zoomTimeout = setTimeout(()=>{
-      this._lastZoomAmount = 0;
-      this._zoomTimeout = null;
-    }, STAGE_OPTIONS.zoom_timeout);
-  }
-
-  zoomIn(center) {
-    this._handleZoom(STAGE_OPTIONS.zoom_amount, center);
-  }
-
-  zoomOut(center) {
-    this._handleZoom(-STAGE_OPTIONS.zoom_amount, center);
-  }
-
-  scrollView(offset) {
-    this._pause();
-    paper.view.translate(offset.divide(paper.view.zoom));
-    this._redrawAxes();
-    this._resume();
-  }
-
-  get bounds() {
-    return paper.view.bounds;
-  }
-
-  projectToView(point) {
-    return paper.view.projectToView(point);
-  }
-
-  static get TOOLS(){return TOOLS;}
-  get tools(){return TOOLS;}
+function setActiveStage(stage) {
+  const prevStage = activeStage;
+  activeStage = stage;
+  if(prevStage) prevStage.deactivate();
+  activeStageChangedEvent.emit(activeStage, prevStage);
 }
 
-let stage = null;
+export function getActiveStage() {
+  return activeStage;
+}
 
-export default stage;
+function generateSettings(settings) {
+  return copyObject(settings, copyObject(DEFAULT_STAGE_SETTINGS));
+}
 
-export function initializeStage() {
-  paper.view.center = new paper.Point(0,0);
-
-  stage = new Stage();
-
-  Object.keys(TOOLS).forEach(tool => {
-    if(typeof TOOLS[tool] === 'function') {
-      TOOLS[tool] = TOOLS[tool](stage);
+export default class Stage {
+  constructor(views, settings) {
+    if(!(views.axes instanceof HTMLCanvasElement)
+       || !(views.zoomed instanceof HTMLCanvasElement)
+       || !(views.normal instanceof HTMLCanvasElement)
+       || !(views.interactive instanceof HTMLCanvasElement)
+    ) {
+      throw new Error('Invalid views in instantiation of Stage.');
     }
+
+    this._settings = generateSettings(settings);
+
+    if(this._settings.use_active_paper_scope === true) {
+      this._paperScope = paper;
+    } else {
+      this._paperScope = new paper.PaperScope();
+    }
+
+    const scope = this._paperScope;
+
+    this._zoomEvent = new Observable();
+    this._scrollEvent = new Observable();
+    this._activateEvent = new Observable();
+    this._deactivateEvent = new Observable();
+
+    this._paperScope.activate();
+    scope.settings.insertItems = false;
+
+    this._interactive = new InteractiveStage(new scope.Project(views.interactive), this);
+    this._normal = new NormalStage(new scope.Project(views.normal), this);
+    this._zoomed = new ZoomedStage(new scope.Project(views.zoomed), this);
+    this._axes = new AxesStage(new scope.Project(views.axes), this);
+
+    this._zoomLevel = 1;
+    this._zoomHandler = new ZoomHandler(this);
+
+    this._tools = new StageTools(this);
+
+    this.activate();
+  }
+
+  get axes() { return this._axes; }
+  get zoomed() { return this._zoomed; }
+  get normal() { return this._normal; }
+  get interactive() { return this._interactive; }
+
+  get settings() { return this._settings; }
+
+  get activateEvent() { return this._activateEvent; }
+  get deactivateEvent() { return this._deactivateEvent; }
+  activate() {
+    this._paperScope.activate();
+    setActiveStage(this);
+    this._activateEvent.emit();
+  }
+  deactivate() {
+    this._deactivateEvent.emit();
+  }
+
+  get zoom() { return this._zoomLevel; }
+  set zoom(level) {this.setZoom(level);}
+  setZoom(level, viewPosition) {
+    if(level < this._settings.zoom_min) level = this._settings.zoom_min;
+    else if(level > this._settings.zoom_max) level = this._settings.zoom_max;
+
+    this._zoomLevel = level;
+
+    this._zoomEvent.emit(level, viewPosition);
+  }
+  zoomIn(viewPosition) { this._zoomHandler.zoomIn(viewPosition); }
+  zoomOut(viewPosition) { this._zoomHandler.zoomOut(viewPosition); }
+  get zoomEvent() { return this._zoomEvent; }
+
+  scroll(viewOffset) { this._scrollEvent.emit(viewOffset); }
+  get scrollEvent() { return this._scrollEvent; }
+
+  get tools() { return this._tools; }
+
+  get scope() { return this._paperScope; }
+  get Line() { return this._paperScope.Path.Line; }
+  get Tool() { return this._paperScope.Tool; }
+  get Point() { return this._paperScope.Point; }
+  get Circle() { return this._paperScope.Path.Circle; }
+}
+
+function copyObject(obj, target) {
+  if(typeof obj === 'undefined') {
+    return target;
+  }
+
+  if(obj === null || typeof obj !== 'object') return obj;
+
+  target = (target !== null && typeof target === 'object') ? target : {};
+
+  Object.keys(obj).forEach(key => {
+    target[key] = copyObject(obj[key], target[key]);
   });
 
-  TOOLS.PAN.activate();
-
-  const point = new paper.Path.Circle(new paper.Point(0,0), 5);
-  point.fillColor = "#F00";
+  return target;
 }

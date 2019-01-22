@@ -1,7 +1,11 @@
+import { activeStageChangedEvent } from '../classes/Stage.js';
+
 const CLEAR_ALL_BTN_QUERY = "#clearAllBtn";
 const LOAD_FILE_BTN_QUERY = "#loadFileBtn";
 const SAVE_FILE_BTN_QUERY = "#saveFileBtn";
 const PAN_TOOL_BTN_QUERY = "#panToolBtn";
+const ZOOM_IN_TOOL_BTN_QUERY = "#zoomInToolBtn";
+const ZOOM_OUT_TOOL_BTN_QUERY = "#zoomOutToolBtn";
 
 import pointsList from '../classes/PointsList.js';
 import log from '../classes/Logger.js';
@@ -35,33 +39,51 @@ import saveFile from '../fileSave.js'
   elem.addEventListener("click", saveFile);
 })();
 
-import {TOOLS} from '../classes/Stage.js';
-
 (()=>{
-  const TOOL_SELECTED_CLASSNAME = ' selected';
+  const TOOL_SELECTED_CLASSNAME = 'selected';
 
-  setupTool(TOOLS.PAN, PAN_TOOL_BTN_QUERY);
+  activeStageChangedEvent.subscribe(stage => {
+    setupTool(stage, stage.tools.panTool, PAN_TOOL_BTN_QUERY);
+    setupTool(stage, stage.tools.zoomInTool, ZOOM_IN_TOOL_BTN_QUERY);
+    setupTool(stage, stage.tools.zoomOutTool, ZOOM_OUT_TOOL_BTN_QUERY);
+  });
 
-  function setupTool(tool, query) {
+  function setupTool(stage, tool, query) {
     const elem = document.querySelector(query);
 
-    if(tool.isActive()) {
-      elem.className += TOOL_SELECTED_CLASSNAME;
+    if(tool.isActive) setToolAsActive(elem);
+    else setToolAsNotActive(elem);
+
+    tool.activateEvent.subscribe(onActivateTool);
+    tool.deactivateEvent.subscribe(onDeactivateTool);
+    elem.addEventListener('click', activate);
+    stage.deactivateEvent.subscribe(onStageDeactivate);
+
+    function activate() {
+      tool.activate();
     }
 
-    tool.on({
-      activate(){
-        if(!elem.className.includes(TOOL_SELECTED_CLASSNAME)) {
-          elem.className += TOOL_SELECTED_CLASSNAME;
-        }
-      },
-      deactivate() {
-        elem.className.replace(TOOL_SELECTED_CLASSNAME, '');
-      }
-    });
+    function onActivateTool() {
+      setToolAsActive(elem);
+    }
 
-    elem.addEventListener('click', ()=>{
-      tool.activate();
-    });
+    function onDeactivateTool() {
+      setToolAsNotActive(elem);
+    }
+
+    function onStageDeactivate(){
+      tool.activateEvent.unsubscribe(onActivateTool);
+      tool.deactivateEvent.unsubscribe(onDeactivateTool);
+      elem.removeEventListener('click', activate);
+      stage.deactivateEvent.unsubscribe(onStageDeactivate);
+    }
+  }
+
+  function setToolAsActive(element) {
+    element.classList.add(TOOL_SELECTED_CLASSNAME);
+  }
+
+  function setToolAsNotActive(element) {
+    element.classList.remove(TOOL_SELECTED_CLASSNAME);
   }
 })();

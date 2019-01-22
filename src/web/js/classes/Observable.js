@@ -3,6 +3,8 @@ export default class Observable {
     this._listeners = [];
   }
 
+  get listenerCount() { return this._listeners.length; }
+
   subscribe(fn) {
     if(typeof fn !== 'function')
       throw new TypeError("Parameter is not a function");

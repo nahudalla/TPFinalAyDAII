@@ -1,15 +1,15 @@
-const CANVAS_ID = "canvas";
+const AXES_CANVAS_ID = "canvas_axes";
+const ZOOMED_CANVAS_ID = "canvas_zoomed";
+const NORMAL_CANVAS_ID = "canvas_normal";
+const INTERACTIVE_CANVAS_ID = "canvas_interactive";
 
-import log from '../classes/Logger.js';
+import Stage from '../classes/Stage.js';
 
-if(!("paper" in window) || !('setup' in window.paper)) {
-  log(log.FLAGS.CRITICAL, "Could not initialize canvas: Paper.js not loaded!");
-}
-
-const paper = window.paper;
-
-paper.setup(CANVAS_ID);
-
-import {initializeStage} from '../classes/Stage.js';
-
-initializeStage();
+const stage = new Stage({
+  axes: document.getElementById(AXES_CANVAS_ID),
+  zoomed: document.getElementById(ZOOMED_CANVAS_ID),
+  normal: document.getElementById(NORMAL_CANVAS_ID),
+  interactive: document.getElementById(INTERACTIVE_CANVAS_ID)
+}, {
+  use_active_paper_scope: true
+});

@@ -52,7 +52,10 @@
       <span>Cargando...<br><span id="loadingMessage">Preparando carga...</span></span>
     </div>
     <div class="canvasContainer">
-      <canvas id="canvas" data-paper-resize="true"></canvas>
+      <canvas id="canvas_axes" data-paper-resize="true"></canvas>
+      <canvas id="canvas_zoomed" data-paper-resize="true"></canvas>
+      <canvas id="canvas_normal" data-paper-resize="true"></canvas>
+      <canvas id="canvas_interactive" data-paper-resize="true"></canvas>
     </div>
     <div class="sidebar">
       <div class="header">Algoritmos</div>
@@ -60,8 +63,8 @@
       <div class="tools">
         <ul>
           <li class="material-icons" title="Mover vista" id="panToolBtn">pan_tool</li>
-          <li class="material-icons" title="Acercar vista">zoom_in</li>
-          <li class="material-icons" title="Alejar vista">zoom_out</li>
+          <li class="material-icons" title="Acercar vista" id="zoomInToolBtn">zoom_in</li>
+          <li class="material-icons" title="Alejar vista" id="zoomOutToolBtn">zoom_out</li>
           <li class="material-icons" title="Cargar puntos de archivo" id="loadFileBtn">open_in_browser</li>
           <li class="material-icons" title="Guardar puntos en archivo" id="saveFileBtn">save</li>
           <li class="material-icons" title="Borrar todos los puntos" id="clearAllBtn">delete_forever</li>

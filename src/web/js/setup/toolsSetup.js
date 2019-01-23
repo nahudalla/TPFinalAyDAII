@@ -8,7 +8,7 @@ const ZOOM_IN_TOOL_BTN_QUERY = "#zoomInToolBtn";
 const ZOOM_OUT_TOOL_BTN_QUERY = "#zoomOutToolBtn";
 
 import pointsList from '../classes/PointsList.js';
-import log from '../classes/Logger.js';
+import log from '../logger.js';
 
 /* CLEAR ALL BUTTON */
 (()=>{
@@ -23,7 +23,7 @@ import log from '../classes/Logger.js';
   });
 })();
 
-import loadFile from '../fileLoad.js';
+import loadFile from '../filesSupport/fileLoad.js';
 
 /* LOAD FILE BUTTON */
 (()=>{
@@ -31,7 +31,7 @@ import loadFile from '../fileLoad.js';
   elem.addEventListener('click', loadFile);
 })();
 
-import saveFile from '../fileSave.js'
+import saveFile from '../filesSupport/fileSave.js'
 
 /* SAVE FILE BUTTON */
 (()=>{

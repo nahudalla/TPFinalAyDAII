@@ -27,9 +27,9 @@ fileInput.addEventListener('change', ()=>{
     .catch(prom.reject);
 });
 
-import log from './classes/Logger.js'
-import {default as parse, ParserError} from './classes/InputFileParser.js';
-import pointsList from './classes/PointsList.js'
+import log from '../logger.js'
+import {default as parse, ParserError} from './fileParser.js';
+import pointsList from '../classes/PointsList.js'
 
 export function handleFile(file) {
   return new Promise((resolve, reject) => {

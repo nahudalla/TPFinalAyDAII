@@ -1,5 +1,5 @@
-import log from './classes/Logger.js'
-import pointsList from './classes/PointsList.js'
+import log from '../logger.js'
+import pointsList from '../classes/PointsList.js'
 
 export default function saveFile() {
   log(log.FLAGS.INFO_1, "Preparando archivo para guardado...");

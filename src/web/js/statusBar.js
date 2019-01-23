@@ -15,7 +15,7 @@ class StatusBar {
     this._log = [];
   }
 
-  setMessage(content) {
+  setMessage(pre, content) {
     let elem;
 
     const scrolledDown = isScrolledDown(this._container);
@@ -27,21 +27,20 @@ class StatusBar {
       this._log_container.removeChild(elem);
     }
 
-    elem.innerText = content;
+    elem.innerText = pre + content;
 
     this._status_container.innerText = content;
 
     this._log_container.appendChild(elem);
     this._log.push(elem);
 
-    if(scrolledDown)
-      scrollDown(this._container);
+    if(scrolledDown) scrollDown(this._container);
   }
 }
 
-const instance = new StatusBar();
+const statusBar = new StatusBar();
 
-export default instance;
+export default statusBar;
 
 function isScrolledDown(e) {
   return e.scrollHeight-e.clientHeight <= e.scrollTop + 20;

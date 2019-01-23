@@ -1,4 +1,4 @@
-import log from '../classes/Logger.js';
+import log from '../logger.js';
 
 if(!("paper" in window) || !('setup' in window.paper)) {
   log(log.FLAGS.CRITICAL, "Could not initialize canvas: Paper.js not loaded!");
@@ -14,18 +14,34 @@ import StageTools from './stage/StageTools.js';
 
 const DEFAULT_STAGE_SETTINGS = {
   use_active_paper_scope: false,
-  grid_size: 10,
+  grid_size: 30,
+  point_radius: 7,
+  point_style: {
+    fillColor: '#00F'
+  },
   zoom_amount: 0.2,
   zoom_timeout: 350,
-  zoom_min: 0.5,
+  zoom_min: 0.35,
   zoom_max: 15,
-  axes_style: {
+  axes_lines_style: {
     strokeWidth: 1,
     strokeScaling: false,
     strokeColor: '#000'
   },
+  axes_markers_style: {
+    strokeWidth: 1,
+    strokeScaling: false,
+    strokeColor: '#000'
+  },
+  axes_text_style: {
+    justification: 'center',
+    fillColor: '#000'
+  },
   axes_padding: 5,
-  axes_line_length: 10
+  axes_marker_length: 10,
+  axes_markers_min_distance: 23,
+  axes_text_to_line_offset: 15,
+  axes_text_preferred_side: 'lower' // lower or upper
 };
 
 let activeStage = null;
@@ -75,13 +91,13 @@ export default class Stage {
     this._paperScope.activate();
     scope.settings.insertItems = false;
 
+    this._zoomLevel = 1;
+    this._zoomHandler = new ZoomHandler(this);
+
     this._interactive = new InteractiveStage(new scope.Project(views.interactive), this);
     this._normal = new NormalStage(new scope.Project(views.normal), this);
     this._zoomed = new ZoomedStage(new scope.Project(views.zoomed), this);
     this._axes = new AxesStage(new scope.Project(views.axes), this);
-
-    this._zoomLevel = 1;
-    this._zoomHandler = new ZoomHandler(this);
 
     this._tools = new StageTools(this);
 
@@ -112,6 +128,8 @@ export default class Stage {
     if(level < this._settings.zoom_min) level = this._settings.zoom_min;
     else if(level > this._settings.zoom_max) level = this._settings.zoom_max;
 
+    if(this._zoomLevel === level) return;
+
     this._zoomLevel = level;
 
     this._zoomEvent.emit(level, viewPosition);
@@ -130,6 +148,7 @@ export default class Stage {
   get Tool() { return this._paperScope.Tool; }
   get Point() { return this._paperScope.Point; }
   get Circle() { return this._paperScope.Path.Circle; }
+  get PointText() { return this._paperScope.PointText; }
 }
 
 function copyObject(obj, target) {

@@ -3,6 +3,8 @@ const POINTS_LIST_SELECTOR = "#pointsList";
 import Point from "./Point.js";
 import Observable from "./Observable.js";
 
+// TODO: make this class non-singleton
+
 class PointsList extends Observable {
   static get POINT_ADDED_EVENT() {return 0;};
   static get POINT_REMOVED_EVENT() {return 1;};

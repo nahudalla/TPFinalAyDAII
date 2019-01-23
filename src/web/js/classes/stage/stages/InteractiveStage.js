@@ -1,46 +1,32 @@
 import StageBase from './StageBase.js';
 import Observable from '../../Observable.js';
 
-// FIXME: Wrong mouse position when dragging outside of interactive layer
-
 export default class InteractiveStage extends StageBase {
   constructor(project, stage) {
     super(project, stage);
 
+    super._centerOriginInView();
     super._enableZoom();
+    super._enableScroll();
 
     this._clickEvent = new Observable();
     this._dragEvent = new Observable();
 
-    this._setupScroll();
     this._setupZoom();
     this._setupClickEvent();
     this._setupDragEvent();
-
-    project.activeLayer.addChild(new stage.Circle({
-      center: project.view.center,
-      radius: 5,
-      fillColor: '#F00'
-    }));
   }
 
   get clickEvent() { return this._clickEvent; }
   get dragEvent() { return this._dragEvent; }
 
-  _setupScroll() {
-    this.stage.scrollEvent.subscribe(offset => {
-      const view = this.view;
-      const viewCenter = view.projectToView(view.center);
-      view.center = view.viewToProject(viewCenter.subtract(offset));
-    });
-  }
-
   _setupZoom() {
-    this.project.view.element.addEventListener('mousewheel', e => {
+    const elem = this.project.view.element;
+    elem.addEventListener('mousewheel', e => {
       e.preventDefault();
       e.stopPropagation();
 
-      const viewPosition = new this.stage.Point(calculateMousePos(e));
+      const viewPosition = new this.stage.Point(calculateMousePos(elem, e));
 
       if(e.deltaY < 0) this.stage.zoomIn(viewPosition);
       else this.stage.zoomOut(viewPosition);
@@ -51,7 +37,7 @@ export default class InteractiveStage extends StageBase {
     const element = this.project.view.element;
     element.addEventListener('click', event => {
       this._clickEvent.emit({
-        position: new this.stage.Point(calculateMousePos(event)),
+        position: new this.stage.Point(calculateMousePos(element, event)),
         event
       });
     });
@@ -66,7 +52,7 @@ export default class InteractiveStage extends StageBase {
     const onMouseUpBound = onMouseUp.bind(this);
 
     element.addEventListener('mousedown', e => {
-      lastPosition = new this.stage.Point(calculateMousePos(e));
+      lastPosition = new this.stage.Point(calculateMousePos(element, e));
       isDrag = false;
       window.addEventListener('mousemove', onMouseMoveBound);
       window.addEventListener('mouseup', onMouseUpBound);
@@ -77,7 +63,7 @@ export default class InteractiveStage extends StageBase {
       event.stopPropagation();
       isDrag = true;
 
-      const position = new this.stage.Point(calculateMousePos(event));
+      const position = new this.stage.Point(calculateMousePos(element, event));
       const previous_position = lastPosition;
       lastPosition = position;
 
@@ -98,8 +84,8 @@ export default class InteractiveStage extends StageBase {
   }
 }
 
-function calculateMousePos(e) {
-  const rect = e.target.getBoundingClientRect();
+function calculateMousePos(elem, e) {
+  const rect = elem.getBoundingClientRect();
   const x = e.clientX - rect.left; //x position within the element.
   const y = e.clientY - rect.top;  //y position within the element.
   return {x, y};

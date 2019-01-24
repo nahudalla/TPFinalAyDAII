@@ -15,6 +15,12 @@
     font-size: 1.3em;
 }
 
+@media screen and (max-height: 450px) {
+    .sidebar > .header {
+        font-size: 1em;
+    }
+}
+
 .sidebar > div + .header {
     border-top: #999 1px solid;
 }

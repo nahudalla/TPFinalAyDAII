@@ -3,3 +3,10 @@
     margin-right: 5px;
     font-size: 1.5em;
 }
+
+@media screen and (max-width: 450px), screen and (max-height: 450px) {
+    .sidebar > .tools > ul > li {
+        margin-right: 2px;
+        font-size: 1em;
+    }
+}

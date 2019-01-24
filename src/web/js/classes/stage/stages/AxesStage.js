@@ -48,6 +48,8 @@ export default class AxesStage extends StageBase {
   }
 
   draw() {
+    this.project.activate();
+
     this._restoreZoom();
 
     const horizontalAxisInfo = this._calculateAxisInfo();
@@ -179,7 +181,7 @@ export default class AxesStage extends StageBase {
 
       const text = new Text({
         point: this.view.center,
-        content: num
+        content: num*(vertical?-1:1)
       });
 
       text.position = (

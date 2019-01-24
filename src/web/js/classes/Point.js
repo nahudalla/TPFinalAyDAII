@@ -3,8 +3,8 @@ export default class Point {
     if(typeof x !== 'number' || typeof y !== 'number')
       throw new TypeError("Invalid Point coordinates: "+x+", "+y);
 
-    this._x = x;
-    this._y = y;
+    this._x = x === -0 ? 0 : x;
+    this._y = y === -0 ? 0 : y;
   }
 
   get x() {

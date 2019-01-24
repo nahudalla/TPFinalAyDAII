@@ -5,6 +5,17 @@ export default class StageBase {
     this._stage = stage;
 
     this._styleStack = [];
+
+    this._center = null;
+  }
+
+  _enableResetCenterOnResize(pre, post) {
+    this._center = this.view.center;
+    this._project.view.on('resize', ()=>{
+      if(typeof pre === 'function') pre();
+      this.view.center = this._center;
+      if(typeof post === 'function') post();
+    });
   }
 
   _pushStyle(style) {
@@ -37,6 +48,7 @@ export default class StageBase {
     this.stage.zoomEvent.subscribe((level, viewPosition) => {
       if(typeof pre === 'function') pre();
       view.scale(level/view.zoom, view.viewToProject(viewPosition));
+      if(this._center) this._center = view.center.clone();
       if(typeof post === 'function') post();
     });
   }
@@ -47,6 +59,7 @@ export default class StageBase {
       const view = this.view;
       const viewCenter = view.projectToView(view.center);
       view.center = view.viewToProject(viewCenter.subtract(offset));
+      if(this._center) this._center = view.center.clone();
       if(typeof post === 'function') post();
     });
   }

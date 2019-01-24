@@ -41,31 +41,23 @@ const DEFAULT_STAGE_SETTINGS = {
   axes_marker_length: 10,
   axes_markers_min_distance: 23,
   axes_text_to_line_offset: 15,
-  axes_text_preferred_side: 'lower' // lower or upper
+  axes_text_preferred_side: 'lower', // lower or upper
+  interactive_default_cursor: 'default',
+  interactive_point_style: {
+    fillColor: '#888'
+  }
 };
-
-let activeStage = null;
-
-export const activeStageChangedEvent = new Observable();
-
-function setActiveStage(stage) {
-  const prevStage = activeStage;
-  activeStage = stage;
-  if(prevStage) prevStage.deactivate();
-  activeStageChangedEvent.emit(activeStage, prevStage);
-}
-
-export function getActiveStage() {
-  return activeStage;
-}
 
 function generateSettings(settings) {
   return copyObject(settings, copyObject(DEFAULT_STAGE_SETTINGS));
 }
 
 export default class Stage {
-  constructor(views, settings) {
-    if(!(views.axes instanceof HTMLCanvasElement)
+  constructor(settings, context) {
+    const views = settings.views;
+
+    if(!views
+       || !(views.axes instanceof HTMLCanvasElement)
        || !(views.zoomed instanceof HTMLCanvasElement)
        || !(views.normal instanceof HTMLCanvasElement)
        || !(views.interactive instanceof HTMLCanvasElement)
@@ -85,10 +77,7 @@ export default class Stage {
 
     this._zoomEvent = new Observable();
     this._scrollEvent = new Observable();
-    this._activateEvent = new Observable();
-    this._deactivateEvent = new Observable();
 
-    this._paperScope.activate();
     scope.settings.insertItems = false;
 
     this._zoomLevel = 1;
@@ -99,9 +88,11 @@ export default class Stage {
     this._zoomed = new ZoomedStage(new scope.Project(views.zoomed), this);
     this._axes = new AxesStage(new scope.Project(views.axes), this);
 
-    this._tools = new StageTools(this);
+    this._tools = new StageTools(this, context);
 
-    this.activate();
+    context.activateEvent.subscribe(()=>{
+      this._paperScope.activate();
+    });
   }
 
   get axes() { return this._axes; }
@@ -110,17 +101,6 @@ export default class Stage {
   get interactive() { return this._interactive; }
 
   get settings() { return this._settings; }
-
-  get activateEvent() { return this._activateEvent; }
-  get deactivateEvent() { return this._deactivateEvent; }
-  activate() {
-    this._paperScope.activate();
-    setActiveStage(this);
-    this._activateEvent.emit();
-  }
-  deactivate() {
-    this._deactivateEvent.emit();
-  }
 
   get zoom() { return this._zoomLevel; }
   set zoom(level) {this.setZoom(level);}

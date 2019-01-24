@@ -1,4 +1,4 @@
-import { activeStageChangedEvent } from '../classes/Stage.js';
+import getActiveContext, { activeContextChangedEvent } from '../classes/Context.js';
 
 const CLEAR_ALL_BTN_QUERY = "#clearAllBtn";
 const LOAD_FILE_BTN_QUERY = "#loadFileBtn";
@@ -6,14 +6,17 @@ const SAVE_FILE_BTN_QUERY = "#saveFileBtn";
 const PAN_TOOL_BTN_QUERY = "#panToolBtn";
 const ZOOM_IN_TOOL_BTN_QUERY = "#zoomInToolBtn";
 const ZOOM_OUT_TOOL_BTN_QUERY = "#zoomOutToolBtn";
+const ADD_POINT_TOOL_BTN_QUERY = "#addPointBtn";
+const REMOVE_POINT_TOOL_BTN_QUERY = "#removePointBtn";
 
-import pointsList from '../classes/PointsList.js';
 import log from '../logger.js';
 
 /* CLEAR ALL BUTTON */
 (()=>{
   const elem = document.querySelector(CLEAR_ALL_BTN_QUERY);
   elem.addEventListener('click', ()=>{
+    const pointsList = getActiveContext().pointsList;
+
     if(pointsList.length === 0) return;
 
     if(confirm('¿Desea eliminar todos los puntos del espacio de trabajo?')) {
@@ -23,12 +26,12 @@ import log from '../logger.js';
   });
 })();
 
-import loadFile from '../filesSupport/fileLoad.js';
+import triggerFileSelectionDialog from '../filesSupport/fileLoad.js';
 
 /* LOAD FILE BUTTON */
 (()=>{
   const elem = document.querySelector(LOAD_FILE_BTN_QUERY);
-  elem.addEventListener('click', loadFile);
+  elem.addEventListener('click', triggerFileSelectionDialog);
 })();
 
 import saveFile from '../filesSupport/fileSave.js'
@@ -42,13 +45,16 @@ import saveFile from '../filesSupport/fileSave.js'
 (()=>{
   const TOOL_SELECTED_CLASSNAME = 'selected';
 
-  activeStageChangedEvent.subscribe(stage => {
-    setupTool(stage, stage.tools.panTool, PAN_TOOL_BTN_QUERY);
-    setupTool(stage, stage.tools.zoomInTool, ZOOM_IN_TOOL_BTN_QUERY);
-    setupTool(stage, stage.tools.zoomOutTool, ZOOM_OUT_TOOL_BTN_QUERY);
+  activeContextChangedEvent.subscribe(context => {
+    const stage = context.stage;
+    setupTool(context, stage.tools.panTool, PAN_TOOL_BTN_QUERY);
+    setupTool(context, stage.tools.zoomInTool, ZOOM_IN_TOOL_BTN_QUERY);
+    setupTool(context, stage.tools.zoomOutTool, ZOOM_OUT_TOOL_BTN_QUERY);
+    setupTool(context, stage.tools.addPointTool, ADD_POINT_TOOL_BTN_QUERY);
+    setupTool(context, stage.tools.removePointTool, REMOVE_POINT_TOOL_BTN_QUERY);
   });
 
-  function setupTool(stage, tool, query) {
+  function setupTool(context, tool, query) {
     const elem = document.querySelector(query);
 
     if(tool.isActive) setToolAsActive(elem);
@@ -57,7 +63,7 @@ import saveFile from '../filesSupport/fileSave.js'
     tool.activateEvent.subscribe(onActivateTool);
     tool.deactivateEvent.subscribe(onDeactivateTool);
     elem.addEventListener('click', activate);
-    stage.deactivateEvent.subscribe(onStageDeactivate);
+    context.deactivateEvent.subscribe(onContextDeactivate);
 
     function activate() {
       tool.activate();
@@ -71,11 +77,11 @@ import saveFile from '../filesSupport/fileSave.js'
       setToolAsNotActive(elem);
     }
 
-    function onStageDeactivate(){
+    function onContextDeactivate(){
       tool.activateEvent.unsubscribe(onActivateTool);
       tool.deactivateEvent.unsubscribe(onDeactivateTool);
       elem.removeEventListener('click', activate);
-      stage.deactivateEvent.unsubscribe(onStageDeactivate);
+      context.deactivateEvent.unsubscribe(onContextDeactivate);
     }
   }
 

@@ -1,3 +1,7 @@
+import log from '../logger.js'
+import {default as parse, ParserError} from './fileParser.js';
+import getActiveContext from '../classes/Context.js';
+
 const fileInput = document.createElement('input');
 fileInput.type = 'file';
 fileInput.multiple = false;
@@ -5,7 +9,7 @@ fileInput.accept = '.txt';
 
 let currentPromise = null;
 
-export default function loadFile() {
+export default function triggerFileSelectionDialog() {
   if(currentPromise != null) currentPromise.reject();
   return new Promise((resolve, reject) => {
     currentPromise = {resolve, reject};
@@ -22,18 +26,14 @@ fileInput.addEventListener('change', ()=>{
     return;
   }
 
-  handleFile(fileInput.files[0])
+  loadFile(fileInput.files[0])
     .then(prom.resolve)
     .catch(prom.reject);
 });
 
-import log from '../logger.js'
-import {default as parse, ParserError} from './fileParser.js';
-import pointsList from '../classes/PointsList.js'
-
-export function handleFile(file) {
+export function loadFile(file) {
+  const pointsList = getActiveContext().pointsList;
   return new Promise((resolve, reject) => {
-    log(log.FLAGS.INFO_3, "Leyendo contenidos del archivo: "+file.name);
     const reader = new FileReader();
     reader.onload = ()=>{
       try {
@@ -43,24 +43,28 @@ export function handleFile(file) {
           log(log.FLAGS.INFO_1, "El archivo no contiene puntos")
         } else {
           if(pointsList.length === 0
-              || confirm("¿Seguro desea cargar el archivo? Se borrarán todos los puntos actuales del espacio de trabajo."))
+              || confirm("¿Confirma la carga del archivo? Se borrarán todos los puntos actuales del espacio de trabajo."))
           {
             pointsList.clear();
             pointsList.add(points);
+            log(log.FLAGS.INFO_1, 'Archivo cargado: '+file.name);
+          } else {
+            log(log.FLAGS.INFO_1, 'Carga cancelada.');
           }
         }
         resolve();
       } catch (e) {
         if(e instanceof ParserError) {
-          log(log.FLAGS.ERROR, "No se pudo cargar el archivo. Formato inválido.");
+          log(log.FLAGS.ERROR, "Error al leer el contenido del archivo: formato inválido.");
         }
         reject(e);
       }
     };
-    reader.onerror = ()=>{
+    reader.onerror = (e)=>{
       log(log.FLAGS.ERROR, "No se pudo leer el archivo: "+file.name);
-      reject();
+      reject(e);
     };
+    log(log.FLAGS.INFO_3, "Leyendo contenidos del archivo: "+file.name);
     reader.readAsText(file);
   });
 }

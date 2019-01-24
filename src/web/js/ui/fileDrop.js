@@ -1,3 +1,6 @@
+import log from '../logger.js'
+import { loadFile } from '../filesSupport/fileLoad.js';
+
 const overlay = document.createElement('div');
 overlay.className = "drop-file-overlay";
 overlay.innerHTML = "<div>Suelte el archivo aquí para cargarlo</div>";
@@ -46,9 +49,6 @@ function dragStart() {
 function dragEnd() {
   overlay.className = "drop-file-overlay";
 }
-
-import {handleFile as loadFile} from '../filesSupport/fileLoad.js';
-import log from '../logger.js'
 
 async function handleFile(file) {
   if(!file.name.endsWith('.txt')) {

@@ -1,7 +1,8 @@
-import './setup/statusBarLoggerSetup.js';
-import './setup/toolsSetup.js';
-import './setup/canvasSetup.js';
-import './setup/fileDropSetup.js';
+import './ui/statusBar.js';
+import './ui/fileDrop.js';
+import './ui/tools.js';
+import './ui/pointsList.js';
+import './ui/UISetup.js';
 import log from './logger.js';
 
 log(log.FLAGS.INFO, "Listo.");

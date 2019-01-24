@@ -1,45 +1,28 @@
-const POINTS_LIST_SELECTOR = "#pointsList";
-
 import Point from "./Point.js";
 import Observable from "./Observable.js";
 
-// TODO: make this class non-singleton
+export default class PointsList {
+  constructor() {
+    this._points = new Map();
 
-class PointsList extends Observable {
-  static get POINT_ADDED_EVENT() {return 0;};
-  static get POINT_REMOVED_EVENT() {return 1;};
-
-  constructor(container) {
-    super();
-
-    this._container = container;
-    this._points = [];
+    this._addEvent = new Observable();
+    this._removeEvent = new Observable();
   }
 
-  forEach(callback) {
-    this._points.forEach((value, index)=>{
-      callback(value.point, index)
-    });
+  get addEvent() {
+    return this._addEvent;
   }
 
-  set container(container) {
-    this._container = container;
+  get removeEvent() {
+    return this._removeEvent;
   }
 
-  get container() {
-    if(this._container === null) {
-      throw new Error("PointsList has not been setup!");
-    }
-
-    return this._container;
-  }
-
-  get points() {
-    return Array.from(this._points);
+  forEach(fn) {
+    this._points.forEach(value => fn(value));
   }
 
   get length() {
-    return this._points.length;
+    return this._points.size;
   }
 
   add(point) {
@@ -48,54 +31,41 @@ class PointsList extends Observable {
       return;
     }
 
-    if(!(point instanceof Point))
+    if(!(point instanceof Point)) {
       throw new TypeError("Not an instance of Point");
+    }
 
-    const elem = generateElement(point);
+    const key = `${point.x}_${point.y}`;
 
-    this._points.push({point, elem});
-    this.container.appendChild(elem);
+    if(this._points.has(key)) return;
 
-    this.emit(PointsList.POINT_ADDED_EVENT, point);
+    this._points.set(key, point);
+
+    this.addEvent.emit(point);
   }
 
   remove(point) {
-    if(!(point instanceof Point))
+    if(!(point instanceof Point)) {
       throw new TypeError("Not an instance of Point");
+    }
 
-    const i = this._points.findIndex(entry => entry.point.equals(point));
+    const key = `${point.x}_${point.y}`;
 
-    const elem = this._points.splice(i, 1)[0].elem;
+    if(!this._points.delete(key)) return;
 
-    this.container.removeChild(elem);
+    this.removeEvent.emit(point);
+  }
 
-    this.emit(PointsList.POINT_REMOVED_EVENT, point);
+  has(point) {
+    return this._points.has(`${point.x}_${point.y}`);
   }
 
   clear() {
-    this._points.forEach(entry => {
-      this.container.removeChild(entry.elem);
-      this.emit(PointsList.POINT_REMOVED_EVENT, entry.point);
-    });
+    const points = this._points;
+    this._points = new Map();
 
-    this._points = [];
+    points.forEach(point => {
+      this.removeEvent.emit(point);
+    });
   }
 }
-
-function generateElement(point) {
-  const li = document.createElement('li');
-  const icon = document.createElement('span');
-  icon.className = 'material-icons';
-  icon.innerText = 'reorder';
-  li.appendChild(icon);
-  const text = document.createElement('span');
-  text.innerText = `(${point.x}, ${point.y})`;
-  li.appendChild(text);
-  li.dataset.x = point.x;
-  li.dataset.y = point.y;
-  return li;
-}
-
-const instance = new PointsList(document.querySelector(POINTS_LIST_SELECTOR));
-
-export default instance;

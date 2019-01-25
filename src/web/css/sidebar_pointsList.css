@@ -20,9 +20,64 @@
     flex: 0 1 auto;
 }
 
+.sidebar > .pointsList > ul > li > span.material-icons {
+    cursor: grab;
+}
+
+.sidebar > .pointsList > ul > li > span.material-icons:active {
+    cursor: grabbing;
+}
+
 .sidebar > .pointsList > ul > li > span + span {
     display: block;
     font-size: 1.2em;
     flex: 1 1 auto;
     text-align: center;
+}
+
+.sidebar > .pointsList > ul.reordering,
+.sidebar > .pointsList > ul.reordering > li > span.material-icons,
+.sidebar > .pointsList > ul.reordering > li:hover
+{
+    cursor: grabbing;
+}
+
+.sidebar > .pointsList > ul.reordering > li:hover
+{
+    background-color: #FFF;
+}
+
+.sidebar > .pointsList > ul > li.chosen,
+.sidebar > .pointsList > ul > li:hover.chosen
+{
+    background-color: cornflowerblue;
+    color: #FFF;
+}
+
+.sidebar > .pointsList > ul > li.ghost,
+.sidebar > .pointsList > ul > li:hover.ghost
+{
+    background-color: #6495ED;
+    animation: points-list-drag 1s linear infinite;
+}
+
+@keyframes points-list-drag {
+    0% {
+        background-color: #6495ED;
+        color: #6495ED;
+    }
+    50% {
+        background-color: #FFF;
+        color: #FFF;
+    }
+    100% {
+        background-color: #6495ED;
+        color: #6495ED;
+    }
+}
+
+.sidebar > .pointsList > ul > li.drag,
+.sidebar > .pointsList > ul > li:hover.drag
+{
+    opacity: .4 !important;
 }

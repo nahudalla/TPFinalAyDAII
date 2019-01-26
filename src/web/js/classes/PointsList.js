@@ -11,6 +11,10 @@ export default class PointsList {
     this._reorderEvent = new Observable();
   }
 
+  buildInt32CoordinatesArray() {
+    return new Int32Array(this._orderedPoints);
+  }
+
   get addEvent() {
     return this._addEvent;
   }
@@ -24,7 +28,9 @@ export default class PointsList {
   }
 
   forEach(fn) {
-    this._orderedPoints.forEach(value => fn(value));
+    for(let i = 0; i < this._orderedPoints.length; i += 2) {
+      fn(new Point(this._orderedPoints[i], this._orderedPoints[i+1]))
+    }
   }
 
   get length() {
@@ -39,10 +45,10 @@ export default class PointsList {
     if(oldIndex !== 0 && !oldIndex) return;
 
     if(!beforePoint) {
-      this._orderedPoints.splice(oldIndex, 1);
-      this._orderedPoints.push(point);
-      for(let i = oldIndex; i < this._orderedPoints.length; ++i) {
-        this._points.set(`${this._orderedPoints[i].x}_${this._orderedPoints[i].y}`, i);
+      this._orderedPoints.splice(oldIndex, 2);
+      this._orderedPoints.push(point.x, point.y);
+      for(let i = oldIndex; i < this._orderedPoints.length; i += 2) {
+        this._points.set(`${this._orderedPoints[i]}_${this._orderedPoints[i+1]}`, i);
       }
     } else {
       const beforeKey = `${beforePoint.x}_${beforePoint.y}`;
@@ -51,10 +57,10 @@ export default class PointsList {
       if(newIndex !== 0 && !newIndex) return;
 
       this._points.set(key, newIndex);
-      this._orderedPoints.splice(oldIndex, 1);
-      this._orderedPoints.splice(newIndex+(oldIndex < newIndex ? -1 : 0), 0, point);
-      for(let i = Math.min(oldIndex, newIndex); i < this._orderedPoints.length; ++i) {
-        this._points.set(`${this._orderedPoints[i].x}_${this._orderedPoints[i].y}`, i);
+      this._orderedPoints.splice(oldIndex, 2);
+      this._orderedPoints.splice(newIndex+(oldIndex < newIndex ? -2 : 0), 0, point.x, point.y);
+      for(let i = Math.min(oldIndex, newIndex); i < this._orderedPoints.length; i += 2) {
+        this._points.set(`${this._orderedPoints[i]}_${this._orderedPoints[i+1]}`, i);
       }
     }
 
@@ -76,7 +82,7 @@ export default class PointsList {
     if(this._points.has(key)) return;
 
     this._points.set(key, this._orderedPoints.length);
-    this._orderedPoints.push(point);
+    this._orderedPoints.push(point.x, point.y);
 
     this.addEvent.emit(point);
   }
@@ -92,7 +98,7 @@ export default class PointsList {
 
     if(!this._points.delete(key)) return;
 
-    this._orderedPoints.splice(index, 1);
+    this._orderedPoints.splice(index, 2);
 
     this.removeEvent.emit(point);
   }

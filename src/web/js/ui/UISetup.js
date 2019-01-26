@@ -1,4 +1,5 @@
 import { Context } from '../classes/Context.js';
+import Point from '../classes/Point.js';
 
 const AXES_CANVAS_ID = "canvas_axes";
 const ZOOMED_CANVAS_ID = "canvas_zoomed";
@@ -16,3 +17,21 @@ const context = new Context({
     use_active_paper_scope: true
   }
 });
+
+context.pointsList.add(new Point(0,0));
+context.pointsList.add(new Point(3,3));
+context.pointsList.add(new Point(3,-3));
+context.pointsList.add(new Point(-3,3));
+context.pointsList.add(new Point(-3,-3));
+
+context.algorithms.grahamScan.enable();
+context.algorithms.closestPairOfPoints.enable();
+
+const setEvents = runner => {
+  runner.progressEvent.subscribe((...args) => console.log(...args));
+  runner.doneEvent.subscribe((...args) => console.log(...args));
+  runner.errorEvent.subscribe((...args) => console.log(...args));
+};
+
+const runner = context.algorithms.run();
+setEvents(runner);

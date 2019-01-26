@@ -19,6 +19,8 @@ export default class Observable {
     this._listeners = this._listeners.filter(elem => elem !== fn);
   }
 
+  removeAll() { this._listeners = []; }
+
   emit(...data) {
     this._listeners.forEach(listener => listener(...data));
   }

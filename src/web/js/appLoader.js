@@ -1,30 +1,58 @@
 (()=>{
-  const third_party_libraries = ['download.js', 'paper-core.js', 'Sortable.js'];
+  const third_party_libraries = ['download.js', 'paper-core.js', 'Sortable.js', 'threads.browser_v0.12.0.js'];
 
   const message = document.getElementById('loadingMessage');
 
-  window.Module = {
-    onRuntimeInitialized: async function () {
-      loadAppStylesheet()
-        .then(loadThirdPartyLibraries)
-        .then(loadMainModule)
-        .then(loadFinished)
-        .catch((...params) => {
-          alert("Error al cargar la aplicación. Para más información ver la consola de desarrollador.");
-          console.error(...params);
-        });
-    }
-  };
-
-  window.addEventListener('load', function () {
-    message.innerText = "Cargando módulo nativo de algoritmos...";
-
-    const script = document.createElement('script');
-    script.type = "text/javascript";
-    script.src = `wasm/WASMModule.js`;
-
-    document.body.appendChild(script);
+  window.addEventListener('load', async function () {
+    loadAppStylesheet()
+      .then(loadThirdPartyLibraries)
+      .then(loadNativeModule)
+      .then(loadMainModule)
+      .then(loadFinished)
+      .catch((...params) => {
+        alert("Error al cargar la aplicación. Para más información ver la consola de desarrollador.");
+        console.error(...params);
+      });
   });
+
+  function loadNativeModule() {
+    let loaded = -1;
+    function resourceLoaded() {
+      message.innerText = `Cargando módulo nativo de algoritmos (${++loaded}/2)...`;
+    }
+    resourceLoaded();
+
+    const promises = [];
+
+    promises.push(new Promise((resolve, reject) =>{
+      const link = document.createElement('link');
+      link.href = 'wasm/WASMModule.js';
+      link.rel = 'preload';
+      link.as = 'script';
+      link.type = 'application/javascript';
+      link.onerror = reject;
+      link.onload = (...params)=>{
+        resourceLoaded();
+        resolve(...params);
+      };
+      document.head.appendChild(link);
+    }));
+
+    promises.push(new Promise((resolve, reject) =>{
+      const link = document.createElement('link');
+      link.href = 'wasm/WASMModule.wasm';
+      link.rel = 'preload';
+      link.as = 'fetch';
+      link.onerror = reject;
+      link.onload = (...params)=>{
+        resourceLoaded();
+        resolve(...params);
+      };
+      document.head.appendChild(link);
+    }));
+
+    return Promise.all(promises);
+  }
 
   function loadAppStylesheet() {
     message.innerText = "Cargando interfaz gráfica...";

@@ -12,7 +12,17 @@ if(USE_EMSCRIPTEN_TOOLCHAIN)
         message("Emscripten root found: ${EMSCRIPTEN_ROOT}")
         message("Setting up Emscripten toolchain...")
         set(CMAKE_TOOLCHAIN_FILE ${EMSCRIPTEN_ROOT}/cmake/Modules/Platform/Emscripten.cmake)
-        set(CMAKE_CXX_FLAGS "-s WASM=1")
+        string(CONCAT CMAKE_CXX_FLAGS
+                " --bind"
+                " -fno-exceptions"
+                " -s WASM=1"
+                " -s ENVIRONMENT=worker"
+                " -s MODULARIZE=1"
+                " -s EXIT_RUNTIME=0"
+                " -s FILESYSTEM=0"
+                " -s EXPORT_NAME=WASMModule"
+                " -s \"EXTRA_EXPORTED_RUNTIME_METHODS=['ccall']\""
+        )
     endif()
 endif()
 

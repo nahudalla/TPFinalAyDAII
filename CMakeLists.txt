@@ -68,6 +68,16 @@ set(CLI_SOURCE_FILES
         src/native/cpp/cli/logger_setup.cpp
 )
 
+set(WASM_SOURCE_FILES
+        src/native/cpp/wasm_bindings/data_input.cpp
+        src/native/cpp/wasm_bindings/errors.cpp
+        src/native/cpp/wasm_bindings/graham_scan.cpp
+        src/native/cpp/wasm_bindings/utils.cpp
+        src/native/cpp/wasm_bindings/jarvis_march.cpp
+        src/native/cpp/wasm_bindings/closest_points.cpp
+        src/native/cpp/wasm.cpp
+)
+
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Emscripten")
     set(WASM_MODULE_NAME WASMModule)
 
@@ -75,7 +85,7 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Emscripten")
 
     set(WASM_BUILD_DIR ${PROJECT_SOURCE_DIR}/web-build-${WASM_BUILD_TYPE}/wasm)
 
-    add_executable(${WASM_MODULE_NAME} ${SOURCE_FILES} src/native/cpp/wasm.cpp)
+    add_executable(${WASM_MODULE_NAME} ${SOURCE_FILES} ${WASM_SOURCE_FILES})
     add_custom_command(
             TARGET ${WASM_MODULE_NAME}
             POST_BUILD

@@ -1,4 +1,5 @@
 import Observable from './Observable.js';
+import Point from './Point.js';
 
 (()=>{
   const url = new URL(window.location.href);
@@ -86,7 +87,9 @@ export class AlgorithmRunner {
     if(!(coordinatesArray instanceof Int32Array)) throw new TypeError('AlgorithmRunner: coordinatesArray must be of type Int32Array');
 
     this._algorithms = new Map();
-    algorithms.forEach(algorithm => this._algorithms.set(algorithm.id, algorithm));
+    algorithms.forEach(algorithm => {
+      this._algorithms.set(algorithm.id, algorithm);
+    });
 
     this._progressEvent = new Observable();
     this._doneEvent = new Observable();
@@ -107,22 +110,30 @@ export class AlgorithmRunner {
         location: window.location.href,
         coordinatesArray: {
           length: coordinatesArray.length,
-          BYTES_PER_ELEMENT: coordinatesArray.BYTES_PER_ELEMENT,
           buffer: coordinatesArray.buffer
         }
       }, [coordinatesArray.buffer])
-      .on('progress', (message_id, algor_id, ...args) => {
-        this._progressEvent.emit(message_id, this._algorithms.get(algor_id), ...args);
+      .on('progress', (data) => {
+        if(data.algorithm) data.algorithm = this._algorithms.get(data.algorithm);
+        this._progressEvent.emit(data);
       })
-      .once('error', (err, ...args) => {
+      .once('error', (err) => {
         this._error = err;
-        this._errorEvent.emit(err, ...args);
+        this._errorEvent.emit(err);
         removeAllListeners();
       })
       .once('done', (response, ...args) => {
         const res = this._result = new Map();
         this._algorithms.forEach((algorithm, key) => {
-          res.set(key, {algorithm, result: response[key]});
+          let result;
+          if(response[key] && response[key].buffer instanceof ArrayBuffer) {
+            const i32Array = new Int32Array(response[key].buffer);
+            result = [];
+            for(let i = 0; i < i32Array.length-1; i += 2) {
+              result.push(new Point(i32Array[i], i32Array[i+1]));
+            }
+          } else result = response[key];
+          res.set(key, {algorithm, result});
         });
         this._doneEvent.emit(res, ...args);
         removeAllListeners();
@@ -146,55 +157,116 @@ function worker(input, done, progress) {
   const PROGRESS_IDS = {
     JOB_STARTED: 'job_started',
     MODULE_LOADING: 'module_loading',
-    MODULE_READY: 'module_ready'
+    MODULE_READY: 'module_ready',
+    PREPARING_DATA: 'preparing_data',
+    EXECUTING_ALGORITHM: 'executing_algorithm',
+    COLLECTING_RESULTS: 'collecting_results'
   };
 
   if(typeof importScripts !== 'function' && typeof AlgorithmRunner === 'function') {
     return PROGRESS_IDS;
   }
 
-  progress(PROGRESS_IDS.JOB_STARTED);
+  progress({progressID: PROGRESS_IDS.JOB_STARTED});
 
   const onModuleReady = () => {
-    progress(PROGRESS_IDS.MODULE_READY);
+    progress({progressID: PROGRESS_IDS.MODULE_READY});
 
     const response = {};
+    const transferableObjects = [];
 
-    const heapBytes = arrayToHeap(input.coordinatesArray, this.wasm_module);
-    input.algorithms.forEach(algorithm => {
-      const res = this.wasm_module[`run_${algorithm}`](
-        heapBytes.byteOffset,
-        input.coordinatesArray.length,
-        function(str){progress(str);}
-      );
-      if(res.ptr) {
-        this.wasm_module._free(res.ptr);
+    progress({progressID: PROGRESS_IDS.PREPARING_DATA});
+    const heapPtr = arrayToHeap(input.coordinatesArray, this.wasm_module);
+
+    let err;
+
+    try {
+      this.wasm_module.set_raw_input(heapPtr, input.coordinatesArray.length);
+
+      delete input.coordinatesArray;
+
+      if (input.algorithms.includes('graham_scan')
+        || input.algorithms.includes('jarvis_march')
+      ) {
+        const res = this.wasm_module.prepare_list_of_points_input();
+
+        if (res instanceof Error) err = res;
       }
-      response[algorithm] = res;
-    });
-    this.wasm_module._free(heapBytes.byteOffset);
 
-    done(response);
+      if(input.algorithms.includes('closest_points')) {
+        const res = this.wasm_module.prepare_array_of_points_input();
+
+        if (res instanceof Error) err = res;
+      }
+
+      if(!err) {
+        input.algorithms.forEach(algorithm => {
+          progress({ progressID: PROGRESS_IDS.EXECUTING_ALGORITHM, algorithm });
+
+          const res = this.wasm_module[`run_${algorithm}`]();
+
+          progress({progressID: PROGRESS_IDS.COLLECTING_RESULTS, algorithm });
+
+          response[algorithm] = parseOutput(res, transferableObjects, this.wasm_module);
+        });
+      }
+    }catch (e) {
+      err = e;
+    } finally {
+      this.wasm_module._free(heapPtr);
+    }
+
+    if(err) throw err;
+
+    if(transferableObjects.length > 0) {
+      done.transfer(response, transferableObjects);
+    } else {
+      done(response);
+    }
   };
 
   if(this.wasm_module) onModuleReady();
   else {
-    progress(PROGRESS_IDS.MODULE_LOADING);
+    progress({progressID: PROGRESS_IDS.MODULE_LOADING});
 
     const base = new URL('./wasm/', input.location);
 
     this.wasm_module = WASMModule({
       locateFile: (path) => { return (new URL(path, base)).href; },
       noExitRuntime: true,
-      onRuntimeInitialized: onModuleReady
+      onRuntimeInitialized: ()=>{
+        this.wasm_module.set_constants({PROGRESS_IDS});
+        onModuleReady();
+      }
     });
   }
 
-  function arrayToHeap(typedArray, module){
-    var numBytes = typedArray.length * typedArray.BYTES_PER_ELEMENT;
-    var ptr = module._malloc(numBytes);
-    var heapBytes = new Uint8Array(module.HEAPU8.buffer, ptr, numBytes);
-    heapBytes.set(new Uint8Array(typedArray.buffer));
-    return heapBytes;
+  function arrayToHeap(typedArray, module) {
+    const numBytes = typedArray.length * Int32Array.BYTES_PER_ELEMENT;
+    const ptr = module._malloc(numBytes);
+    const heapBytes = new Uint8Array(module.HEAPU8.buffer, ptr, numBytes);
+    heapBytes.set(new Uint8Array(typedArray.buffer, typedArray.byteOffset, numBytes));
+
+    return heapBytes.byteOffset;
+  }
+
+  function parseOutput(output, transferableObjects, module) {
+    if(output instanceof Error) throw output;
+
+    if(typeof output !== 'object') return output;
+
+    if(output.data && output.length) {
+      const copy = Int32Array.from(
+        new Int32Array(module.HEAP8.buffer, output.data, output.length)
+      );
+
+      module._free(output.data);
+
+      transferableObjects.push(copy.buffer);
+
+      return {
+        buffer: copy.buffer
+      };
+    }
   }
 }

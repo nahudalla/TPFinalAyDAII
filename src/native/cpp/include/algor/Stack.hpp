@@ -13,6 +13,10 @@ namespace algor {
         List<T> list;
 
     public:
+        auto size() const {
+            return this->list.length();
+        }
+
         void push(T value) {
             this->list.add_front(std::move(value));
         }

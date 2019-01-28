@@ -23,8 +23,10 @@ context.pointsList.add(new Point(3,3));
 context.pointsList.add(new Point(3,-3));
 context.pointsList.add(new Point(-3,3));
 context.pointsList.add(new Point(-3,-3));
+context.pointsList.add(new Point(-1,-1));
 
 context.algorithms.grahamScan.enable();
+context.algorithms.jarvisMarch.enable();
 context.algorithms.closestPairOfPoints.enable();
 
 const setEvents = runner => {

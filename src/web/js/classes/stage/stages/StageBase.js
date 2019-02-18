@@ -43,6 +43,23 @@ export default class StageBase {
     this._project.view.center = new this._stage.Point(0,0);
   }
 
+  _setupZoomStorage() {
+    this._zoom = 1;
+    this._zoom_center = this.view.center;
+  }
+
+  _saveZoom() {
+    this._zoom = this.view.zoom;
+    this._zoom_center = this.view.center;
+    this.view.zoom = 1;
+    this.view.center = this._zoom_center.multiply(this._zoom);
+  }
+
+  _restoreZoom() {
+    this.view.zoom = this._zoom;
+    this.view.center = this._zoom_center;
+  }
+
   _enableZoom(pre, post) {
     const view = this.project.view;
     this.stage.zoomEvent.subscribe((level, viewPosition) => {
@@ -67,4 +84,14 @@ export default class StageBase {
   get view() { return this._project.view; }
   get project() { return this._project; }
   get stage() { return this._stage; }
+
+  set autoUpdate(value) {
+    if(typeof value !== 'boolean') throw new TypeError("autoUpdate must be a boolean.");
+
+    this.view.autoUpdate = value;
+  }
+
+  get autoUpdate() { return this.view.autoUpdate; }
+
+  update() { return this.view.update(); }
 }

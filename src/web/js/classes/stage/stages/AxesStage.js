@@ -6,22 +6,21 @@ export default class AxesStage extends StageBase {
 
     super._centerOriginInView();
 
-    this._zoom = 1;
-    this._center = this.view.center;
+    super._setupZoomStorage();
 
     super._enableZoom(
-      () => {this._restoreZoom();},
+      () => {super._restoreZoom();},
       () => {
-        this._saveZoom();
+        super._saveZoom();
         this.draw();
       }
     );
     super._enableScroll(
       ()=>{
-        this._restoreZoom();
+        super._restoreZoom();
       },
       ()=>{
-        this._saveZoom();
+        super._saveZoom();
         this.draw();
       }
     );
@@ -35,22 +34,10 @@ export default class AxesStage extends StageBase {
     this.draw();
   }
 
-  _saveZoom() {
-    this._zoom = this.view.zoom;
-    this._center = this.view.center;
-    this.view.zoom = 1;
-    this.view.center = this._center.multiply(this._zoom);
-  }
-
-  _restoreZoom() {
-    this.view.zoom = this._zoom;
-    this.view.center = this._center;
-  }
-
   draw() {
     this.project.activate();
 
-    this._restoreZoom();
+    super._restoreZoom();
 
     const horizontalAxisInfo = this._calculateAxisInfo();
     const verticalAxisInfo = this._calculateAxisInfo(true);
@@ -69,7 +56,7 @@ export default class AxesStage extends StageBase {
     this._drawNumbers(horizontalAxisInfo, verticalAxisInfo);
     super._popStyle();
 
-    this._saveZoom();
+    super._saveZoom();
 
     this.view.update();
   }
@@ -206,12 +193,12 @@ export default class AxesStage extends StageBase {
     const lowerBoundZoomed = vertical ? view.bounds.top : view.bounds.left;
     const upperBoundZoomed = vertical ? view.bounds.bottom : view.bounds.right;
 
-    this._saveZoom();
+    super._saveZoom();
     const otherLowerBound = vertical ? view.bounds.left : view.bounds.top;
     const otherUpperBound = vertical ? view.bounds.right : view.bounds.bottom;
     const lowerBound = vertical ? view.bounds.top : view.bounds.left;
     const upperBound = vertical ? view.bounds.bottom : view.bounds.right;
-    this._restoreZoom();
+    super._restoreZoom();
 
     const axisInfo = {
       lowerBound, upperBound,

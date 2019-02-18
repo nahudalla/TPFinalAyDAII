@@ -27,11 +27,11 @@ export class Context {
     this._algorithms = new Algorithms(this);
 
     this._pointsList.addEvent.subscribe(point => {
-      this._stage.zoomed.addPoint(point);
+      this._stage.zoomed.addObject(point);
     });
 
     this._pointsList.removeEvent.subscribe(point => {
-      this._stage.zoomed.removePoint(point);
+      this._stage.zoomed.removeObject(point);
     });
 
     this.activate();

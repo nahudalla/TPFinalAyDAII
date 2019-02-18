@@ -1,14 +1,14 @@
-import StageWithPointsBase from './StageWithPointsBase.js';
+import StageWithGeometricObjectsBase from './StageWithGeometricObjectsBase.js';
 
-export default class ZoomedStage extends StageWithPointsBase {
+export default class ZoomedStage extends StageWithGeometricObjectsBase {
   constructor(project, stage) {
-    super(project, stage);
+    super(project, stage, {
+      'Point': stage.settings.point_style
+    });
 
     super._centerOriginInView();
     super._enableResetCenterOnResize();
     super._enableZoom();
     super._enableScroll();
   }
-
-  _getPointStyle() { return this.stage.settings.point_style; }
 }

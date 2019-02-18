@@ -47,7 +47,7 @@ export default class PointToolBase extends ToolBase {
         this._setInvalidCursor();
         this._resetCursor = true;
       }else if(this._showPtrPosition) {
-        this._pointRemover = this.stage.interactive.addPoint(eventData.position);
+        this._pointRemover = this.stage.interactive.addObject(eventData.position);
       }
     };
     this._gridOutListener = ()=>{

@@ -1,10 +1,12 @@
 import Observable from '../../Observable.js';
 import Point from '../../Point.js';
-import StageWithPointsBase from './StageWithPointsBase.js';
+import StageWithGeometricObjectsBase from './StageWithGeometricObjectsBase.js';
 
-export default class InteractiveStage extends StageWithPointsBase {
+export default class InteractiveStage extends StageWithGeometricObjectsBase {
   constructor(project, stage) {
-    super(project, stage);
+    super(project, stage, {
+      'Point':stage.settings.interactive_point_style
+    });
 
     super._centerOriginInView();
     super._enableResetCenterOnResize();
@@ -26,8 +28,6 @@ export default class InteractiveStage extends StageWithPointsBase {
     this._setupDragEvent();
     this._setupGridEvents();
   }
-
-  _getPointStyle() { return this.stage.settings.interactive_point_style; }
 
   get clickEvent() { return this._clickEvent; }
   get dragEvent() { return this._dragEvent; }

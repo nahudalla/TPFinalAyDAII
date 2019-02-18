@@ -45,6 +45,16 @@ const DEFAULT_STAGE_SETTINGS = {
   interactive_default_cursor: 'default',
   interactive_point_style: {
     fillColor: '#888'
+  },
+  normal_back_object_styles: {
+    Point: {fillColor: '#F00'},
+    Segment: {strokeColor: '#0F0', strokeWidth: 3},
+    Arrow: {strokeColor: '#EB3', strokeWidth: 2}
+  },
+  normal_front_object_styles: {
+    Point: {fillColor: '#F70'},
+    Segment: {strokeColor: '#07F', strokeWidth: 3},
+    Arrow: {strokeColor: '#0AF', strokeWidth: 2}
   }
 };
 
@@ -59,7 +69,8 @@ export default class Stage {
     if(!views
        || !(views.axes instanceof HTMLCanvasElement)
        || !(views.zoomed instanceof HTMLCanvasElement)
-       || !(views.normal instanceof HTMLCanvasElement)
+       || !(views.normal_back instanceof HTMLCanvasElement)
+       || !(views.normal_front instanceof HTMLCanvasElement)
        || !(views.interactive instanceof HTMLCanvasElement)
     ) {
       throw new Error('Invalid views in instantiation of Stage.');
@@ -84,7 +95,8 @@ export default class Stage {
     this._zoomHandler = new ZoomHandler(this);
 
     this._interactive = new InteractiveStage(new scope.Project(views.interactive), this);
-    this._normal = new NormalStage(new scope.Project(views.normal), this);
+    this._normal_back = new NormalStage(new scope.Project(views.normal_back), this, this._settings.normal_back_object_styles);
+    this._normal_front = new NormalStage(new scope.Project(views.normal_front), this, this._settings.normal_front_object_styles);
     this._zoomed = new ZoomedStage(new scope.Project(views.zoomed), this);
     this._axes = new AxesStage(new scope.Project(views.axes), this);
 
@@ -97,7 +109,8 @@ export default class Stage {
 
   get axes() { return this._axes; }
   get zoomed() { return this._zoomed; }
-  get normal() { return this._normal; }
+  get normal_back() { return this._normal_back; }
+  get normal_front() { return this._normal_front; }
   get interactive() { return this._interactive; }
 
   get settings() { return this._settings; }
@@ -129,6 +142,7 @@ export default class Stage {
   get Point() { return this._paperScope.Point; }
   get Circle() { return this._paperScope.Path.Circle; }
   get PointText() { return this._paperScope.PointText; }
+  get Group() { return this._paperScope.Group; }
 }
 
 function copyObject(obj, target) {

@@ -38,7 +38,7 @@ export default class PointsList {
   }
 
   reorder(point, beforePoint) {
-    const key = `${point.x}_${point.y}`;
+    const key = point.hashString;
 
     const oldIndex = this._points.get(key);
 
@@ -48,10 +48,10 @@ export default class PointsList {
       this._orderedPoints.splice(oldIndex, 2);
       this._orderedPoints.push(point.x, point.y);
       for(let i = oldIndex; i < this._orderedPoints.length; i += 2) {
-        this._points.set(`${this._orderedPoints[i]}_${this._orderedPoints[i+1]}`, i);
+        this._points.set((new Point(this._orderedPoints[i], this._orderedPoints[i+1])).hashString, i);
       }
     } else {
-      const beforeKey = `${beforePoint.x}_${beforePoint.y}`;
+      const beforeKey = beforePoint.hashString;
       const newIndex = this._points.get(beforeKey);
 
       if(newIndex !== 0 && !newIndex) return;
@@ -60,7 +60,7 @@ export default class PointsList {
       this._orderedPoints.splice(oldIndex, 2);
       this._orderedPoints.splice(newIndex+(oldIndex < newIndex ? -2 : 0), 0, point.x, point.y);
       for(let i = Math.min(oldIndex, newIndex); i < this._orderedPoints.length; i += 2) {
-        this._points.set(`${this._orderedPoints[i]}_${this._orderedPoints[i+1]}`, i);
+        this._points.set((new Point(this._orderedPoints[i], this._orderedPoints[i+1])).hashString, i);
       }
     }
 
@@ -77,7 +77,7 @@ export default class PointsList {
       throw new TypeError("Not an instance of Point");
     }
 
-    const key = `${point.x}_${point.y}`;
+    const key = point.hashString;
 
     if(this._points.has(key)) return;
 
@@ -92,7 +92,7 @@ export default class PointsList {
       throw new TypeError("Not an instance of Point");
     }
 
-    const key = `${point.x}_${point.y}`;
+    const key = point.hashString;
 
     const index = this._points.get(key);
 
@@ -104,7 +104,7 @@ export default class PointsList {
   }
 
   has(point) {
-    return this._points.has(`${point.x}_${point.y}`);
+    return this._points.has(point.hashString);
   }
 
   clear() {
@@ -112,8 +112,8 @@ export default class PointsList {
     this._points = new Map();
     this._orderedPoints = [];
 
-    points.forEach(point => {
-      this.removeEvent.emit(point);
-    });
+    for(let i = 0; i < points.length; i += 2) {
+      this.removeEvent.emit(new Point(points[i], points[i+1]))
+    }
   }
 }

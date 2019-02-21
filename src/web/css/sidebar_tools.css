@@ -11,3 +11,8 @@
         font-size: 1em;
     }
 }
+
+.sidebar > .tools > ul > li.disabled {
+    background-color: #CCCCCC;
+    color: #777777;
+}

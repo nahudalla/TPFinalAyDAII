@@ -1,0 +1,197 @@
+.algorithmResultToolsContainer {
+    position: relative;
+    z-index: 333;
+    margin: 0 auto;
+    display: inline-block;
+    background-color: #FFF;
+    border-radius: 0 0 10px 10px;
+    border-top: 0;
+    padding: 0;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+    overflow: hidden;
+    max-height: 0;
+    box-sizing: border-box;
+}
+
+.algorithmResultToolsContainer.show-animation {
+    animation: show-results-tools 300ms forwards;
+}
+
+.algorithmResultToolsContainer.shown-state {
+    box-shadow: 0 0 10px rgba(0,0,0,.5);
+    padding: 5px;
+    padding-bottom: 13px;
+    max-height: 100%;
+}
+
+.algorithmResultToolsContainer.hide-animation {
+    animation: show-results-tools 300ms reverse forwards;
+}
+
+.algorithmResultToolsContainer.hidden-state {
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+    padding: 0;
+    max-height: 0;
+}
+
+@keyframes show-results-tools {
+    0% {
+        box-shadow: 0 0 0 rgba(0,0,0,0);
+        padding: 0;
+        max-height: 0;
+    }
+
+    100% {
+        box-shadow: 0 0 10px rgba(0,0,0,.5);
+        padding: 5px;
+        padding-bottom: 13px;
+        max-height: 100%;
+    }
+}
+
+.algorithmResultToolsContainer > .top {
+    display: flex;
+    flex-direction: row;
+}
+
+.algorithmResultToolsContainer > .top > .title {
+    flex: 1 1 auto;
+    margin-right: 100px;
+    vertical-align: middle;
+    line-height: calc(1.5em + 14px);
+    text-align: left;
+    font-weight: bolder;
+    text-transform: uppercase;
+}
+
+.algorithmResultToolsContainer > .top > .close {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 7px;
+    font-size: 1.5em;
+    cursor: pointer;
+    font-weight: bolder;
+}
+
+.algorithmResultToolsContainer > #algorithmResultText {
+    text-align: left;
+    margin-bottom: 5px;
+}
+
+.algorithmResultToolsContainer > button {
+    background-color: #FFFFFF;
+    border-radius: 5px;
+    padding: 7px;
+    border: #AAA 1px solid;
+    outline: none;
+    box-shadow: 0 0 5px #CCC;
+    cursor: pointer;
+    color: #333;
+}
+
+.algorithmResultToolsContainer > button:hover,
+.algorithmResultToolsContainer > button:active {
+    background-color: #DDD;
+    color: #000;
+    border-color: #333;
+}
+
+.algorithmResultToolsContainer > button:active {
+    background-color: #333;
+    color: #FFF;
+}
+
+.algorithmResultToolsContainer > .executingAlgorithmMsgContainer {
+    display: inline-flex;
+    line-height: calc(1.5em + 10px);
+}
+
+.algorithmResultToolsContainer > .executingAlgorithmMsgContainer > .material-icons {
+    flex: 0 0 auto;
+    padding: 5px;
+    font-size: 1.5em;
+    animation: executingAlgorithmsMsgAnimation 1.5s ease-in-out infinite;
+}
+
+@keyframes executingAlgorithmsMsgAnimation {
+    0% {
+        transform: scaleX(-1) rotate(0);
+    }
+
+    50% {
+        transform: scaleX(-1) rotate(-180deg);
+    }
+
+    100% {
+        transform: scaleX(-1) rotate(-360deg);
+    }
+}
+
+.algorithmResultToolsContainer > .controls {
+    display: inline-flex;
+    flex-direction: column;
+}
+
+.algorithmResultToolsContainer > .controls > ul {
+    flex: 0 0 auto;
+    list-style-type: none;
+    display: inline-flex;
+    margin: 0;
+    padding: 0;
+}
+
+.algorithmResultToolsContainer > .controls > ul > li.material-icons {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 5px;
+    font-size: 2em;
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #000;
+}
+
+.algorithmResultToolsContainer > .controls > ul > li:hover {
+    text-shadow: 0 0 5px #777;
+}
+
+.algorithmResultToolsContainer > .controls > ul > li:active {
+    text-shadow: 0 0 5px #999;
+    color: #555;
+}
+
+.algorithmResultToolsContainer > .controls > ul > li.speed_selector {
+    flex: 0 0 auto;
+    padding: 5px
+}
+
+.algorithmResultToolsContainer > .controls > ul > li.speed_selector > select {
+    height: 2em;
+    text-align-last: right;
+    background-color: #FFF;
+    outline: none;
+    width: 4em;
+    cursor: pointer;
+    border: #DDD 1px solid;
+    border-radius: 5px;
+}
+
+.algorithmResultToolsContainer > .controls > ul > li.speed_selector > select:hover {
+    border-color: #333333;
+}
+
+.algorithmResultToolsContainer > .controls > ul > li.speed_selector > select option {
+    direction: rtl;
+    cursor: pointer;
+}
+
+.algorithmResultToolsContainer > .controls > input {
+    flex: 1 1 auto;
+    outline: none;
+    cursor: pointer;
+}
+
+.algorithmResultToolsContainer .hidden {
+    display: none;
+}

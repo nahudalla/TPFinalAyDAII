@@ -1,0 +1,42 @@
+.sidebar > .algorithms {
+    margin-bottom: 5px;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: calc(100% - 5px);
+    box-sizing: border-box;
+}
+
+.sidebar > .algorithms > span {
+    font-size: 1.5em;
+    cursor: pointer;
+    flex: 0 0 auto;
+    margin-bottom: 0;
+    border-radius: 0 5px 5px 0;
+}
+
+.sidebar > .algorithms > span:active {
+    background-color: #424242;
+    color: #FFF;
+}
+
+.sidebar > .algorithms > select {
+    padding: 5px;
+    font-size: 1.2em;
+    flex: 1 1;
+    width: 1px;
+    border-radius: 5px 0 0 5px;
+    cursor: pointer;
+    background: #FFF;
+    border: #424242 1px solid;
+    border-right: none;
+    outline: none;
+}
+
+.sidebar > .algorithms > select:hover {
+    background-color: #EEE;
+}
+
+.sidebar > .algorithms > select > option {
+    background-color: #FFFFFF;
+}

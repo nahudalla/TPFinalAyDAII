@@ -52,6 +52,43 @@
       <span>Cargando...<br><span id="loadingMessage">Preparando carga...</span></span>
     </div>
     <div class="canvasContainer">
+      <div class="algorithmResultToolsContainer">
+        <div class="top">
+          <div class="title">Resultado de ejecución</div>
+          <div class="material-icons close" id="hideResultToolsBtn" title="Cerrar resultados de ejecución">close</div>
+        </div>
+        <div id="algorithmResultText"></div>
+        <button id="makeResultInteractive" class="hidden">
+          Habilitar reproducción paso a paso
+        </button>
+        <div class="executingAlgorithmMsgContainer">
+          <span class="material-icons">sync</span>
+          <span id="executingAlgorithmMsg">Ejecutando algoritmo...</span>
+        </div>
+        <div class="controls hidden">
+          <ul>
+            <li class="material-icons" title="Ir al inicio (Ctrl + Alt + Flecha izquierda)" id="goToStartResultBtn">skip_previous</li>
+            <li class="material-icons" title="Retroceder (Alt + Flecha izquierda)" id="goToPrevResultBtn">fast_rewind</li>
+            <li class="speed_selector" title="Velocidad de reproducción">
+              <select id="resultPlaybackSpeed">
+                <option>0.25x</option>
+                <option>0.50x</option>
+                <option selected>1x</option>
+                <option>1.25x</option>
+                <option>1.50x</option>
+                <option>2x</option>
+                <option>2.50x</option>
+                <option>3x</option>
+              </select>
+            </li>
+            <li class="material-icons" title="Reproducir (Barra espaciadora)" id="playStepsResultBtn">play_arrow</li>
+            <li class="material-icons hidden" title="Pausar (Barra espaciadora)" id="pauseStepsResultBtn">pause</li>
+            <li class="material-icons" title="Avanzar (Alt + Flecha derecha)" id="goToNextResultBtn">fast_forward</li>
+            <li class="material-icons" title="Ir al final (Ctrl + Alt + Flecha derecha)" id="goToEndResultBtn">skip_next</li>
+          </ul>
+          <input type="range" min="0" max="10" step="1" id="resultPlaybackStep" value="0">
+        </div>
+      </div>
       <canvas id="canvas_axes" data-paper-resize="true"></canvas>
       <canvas id="canvas_normal_back" data-paper-resize="true"></canvas>
       <canvas id="canvas_zoomed" data-paper-resize="true"></canvas>
@@ -60,19 +97,25 @@
     </div>
     <div class="sidebar">
       <div class="header">Algoritmos</div>
+      <div class="algorithms">
+        <select title="Algoritmo a ejecutar" id="algorithmSelect"></select>
+        <span class="material-icons" title="Ejecutar algoritmo" id="executeAlgorBtn">play_circle_outline</span>
+      </div>
       <div class="header">Herramientas</div>
       <div class="tools">
         <ul>
           <li class="material-icons" title="Mover vista (Ctrl + Click)" id="panToolBtn">pan_tool</li>
           <li class="material-icons" title="Acercar vista" id="zoomInToolBtn">zoom_in</li>
           <li class="material-icons" title="Alejar vista" id="zoomOutToolBtn">zoom_out</li>
-          <li class="material-icons" title="Cargar puntos de archivo" id="loadFileBtn">open_in_browser</li>
+          <li class="material-icons" title="Cargar puntos de archivo" id="loadFileBtn">input</li>
           <li class="material-icons" title="Guardar puntos en archivo" id="saveFileBtn">save</li>
           <li class="material-icons" title="Borrar todos los puntos" id="clearAllBtn">delete_forever</li>
         </ul>
         <ul>
           <li class="material-icons" title="Agregar punto (Shift + Click)" id="addPointBtn">add_circle</li>
           <li class="material-icons" title="Eliminar punto (Alt + Click)" id="removePointBtn">remove_circle</li>
+          <li class="material-icons disabled" title="Deshacer (Ctrl + Z)" id="undoBtn">undo</li>
+          <li class="material-icons disabled" title="Rehacer (Ctrl + Y)" id="redoBtn">redo</li>
         </ul>
       </div>
       <div class="header">Puntos</div>

@@ -12,6 +12,7 @@
     padding: 0;
 }
 
+.sidebar > .algorithms > span,
 .sidebar > .pointsList > ul > li,
 .sidebar > .tools > ul > li {
     padding: 10px;
@@ -20,13 +21,15 @@
     background-color: #FFF;
 }
 
+.sidebar > .algorithms > span:hover,
 .sidebar > .pointsList > ul > li:hover,
 .sidebar > .tools > ul > li:hover {
     background-color: #CCC;
 }
 
 .sidebar > .pointsList > ul > li.selected,
-.sidebar > .tools > ul > li.selected {
+.sidebar > .tools > ul > li.selected,
+.sidebar > .tools > ul > li:active {
     background-color: #333;
     color: #FFF;
 }

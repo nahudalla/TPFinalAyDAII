@@ -1,7 +1,8 @@
 .sidebar > div {
-    flex: 0 1 auto;
+    flex: 0 0 auto;
 }
 
+.sidebar > .algorithms,
 .sidebar > .tools {
     padding-left: 5px;
     padding-top: 5px;

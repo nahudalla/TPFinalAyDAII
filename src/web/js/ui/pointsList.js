@@ -9,12 +9,15 @@ activeContextChangedEvent.subscribe(context => {
 
   context.pointsList.addEvent.subscribe(addPoint);
   context.pointsList.removeEvent.subscribe(removePoint);
+  context.pointsList.reorderEvent.subscribe(onReorder);
   context.deactivateEvent.subscribe(onDeactivate);
 
   context.pointsList.forEach(addPoint);
 });
 
-var sortable = new Sortable(container, {
+let userReorderPoint = null, userReorderBeforePoint = null;
+
+const sortable = new Sortable(container, {
   group: "pointsList",  // or { name: "...", pull: [true, false, 'clone', array], put: [true, false, array] }
   sort: true,  // sorting inside list
   delay: 0, // time in milliseconds to define when the sorting should start
@@ -61,14 +64,45 @@ var sortable = new Sortable(container, {
     const elem = container.childNodes[evt.newIndex];
     const nextElem = container.childNodes[evt.newIndex+1];
 
-    getActiveContext().pointsList.reorder(
-      new Point(parseInt(elem.dataset.x), parseInt(elem.dataset.y)),
+    userReorderPoint = new Point(parseInt(elem.dataset.x), parseInt(elem.dataset.y));
+    userReorderBeforePoint =
       nextElem
-        ? new Point(parseInt(nextElem.dataset.x), parseInt(nextElem.dataset.y))
-        : undefined
+      ? new Point(parseInt(nextElem.dataset.x), parseInt(nextElem.dataset.y))
+      : undefined;
+
+    getActiveContext().pointsList.reorder(
+      userReorderPoint, userReorderBeforePoint
     );
   }
 });
+
+function onReorder(point, beforePoint) {
+  if(!point || !(point instanceof Point) || (beforePoint && !(beforePoint instanceof Point))) return;
+
+  if(point.equals(userReorderPoint)
+     && ( (!beforePoint && !userReorderBeforePoint)
+          || (beforePoint && beforePoint.equals(userReorderBeforePoint))
+        )
+  ) {
+    userReorderPoint = null;
+    userReorderBeforePoint = null;
+
+    return;
+  }
+
+  const pElem = container.querySelector(`[data-x='${point.x}'][data-y='${point.y}']`);
+  const beforePElem = beforePoint && container.querySelector(`[data-x='${beforePoint.x}'][data-y='${beforePoint.y}']`);
+
+  if(!pElem || (beforePoint && !beforePElem)) return;
+
+  container.removeChild(pElem);
+
+  if(beforePElem) {
+    container.insertBefore(pElem, beforePElem);
+  } else {
+    container.addChild(pElem);
+  }
+}
 
 function onDeactivate(context) {
   context.pointsList.addEvent.unsubscribe(addPoint);

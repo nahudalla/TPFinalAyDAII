@@ -63,6 +63,7 @@ export default class StageTools {
   get zoomOutTool() { return this._zoomOutTool; }
   get addPointTool() { return this._addPointTool; }
   get removePointTool() { return this._removePointTool; }
+  get activeTool() { return this._activeTool; }
 }
 
 function setupTool(Tool, stage) {

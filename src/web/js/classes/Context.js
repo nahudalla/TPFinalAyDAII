@@ -35,6 +35,7 @@ export class Context {
     });
 
     this.activate();
+    this._algorithms.grahamScan.enable();
   }
 
   get stage() { return this._stage; }

@@ -176,12 +176,10 @@ import saveFile from '../filesSupport/fileSave.js'
   });
 
   window.addEventListener('keyup', evt => {
-    if(!evt.ctrlKey) return;
+    if(!evt.ctrlKey || evt.code !== 'KeyZ') return;
 
-    switch (evt.code) {
-      case 'KeyZ': getActiveContext().pointsList.undo(); break;
-      case 'KeyY': getActiveContext().pointsList.redo(); break;
-    }
+    if(evt.shiftKey) getActiveContext().pointsList.redo();
+    else getActiveContext().pointsList.undo();
   });
 
   function enable_disable_buttons(ctx) {

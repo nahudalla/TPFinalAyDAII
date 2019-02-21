@@ -16,6 +16,11 @@ export default class ToolBase {
 
   get stage() { return this._stage; }
 
+  get canExecuteOnPoint() { return false; }
+  executeOnPoint() {
+    if(this.canExecuteOnPoint) throw new Error('Abstract method not implemented.');
+  }
+
   _enableGridPositionToolTip(filter) {
     if(this._gridPositionEnabled) return;
 

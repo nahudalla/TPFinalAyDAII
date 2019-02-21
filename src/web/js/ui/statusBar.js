@@ -13,12 +13,20 @@ const log = [];
 
 container.addEventListener('mouseenter', e => scrollDown(e.target));
 
-logger.addListener(FLAGS.ALL, (message, flags) => {
-  let msg = "";
+function addZero(num) {
+  if(num < 10) return '0'+num;
+  return num;
+}
 
-  if((flags & FLAGS.CRITICAL) !== 0) msg = "ERROR CRÍTICO: ";
-  else if((flags & FLAGS.ERROR) !== 0) msg = "ERROR: ";
-  else if((flags & FLAGS.INFO_ALL) !== 0) msg = "INFORMACIÓN: ";
+logger.addListener(FLAGS.ALL, (message, flags) => {
+  const date = new Date();
+
+  let msg = `${addZero(date.getDay())}/${addZero(date.getMonth())}/${date.getFullYear()} `
+            + `${addZero(date.getHours())}:${addZero(date.getMinutes())}:${addZero(date.getSeconds())} `;
+
+  if((flags & FLAGS.CRITICAL) !== 0) msg += "ERROR CRÍTICO: ";
+  else if((flags & FLAGS.ERROR) !== 0) msg += "ERROR: ";
+  else if((flags & FLAGS.INFO_ALL) !== 0) msg += "INFORMACIÓN: ";
 
   const pre = msg;
 

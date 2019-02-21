@@ -1,6 +1,16 @@
 export default class Observable {
   constructor() {
     this._listeners = [];
+    this._paused = false;
+  }
+
+  get paused() {
+    return this._paused;
+  }
+
+  set paused(value) {
+    if(typeof value !== 'boolean') throw new TypeError('Property "paused" must be a boolean.');
+    this._paused = value;
   }
 
   get listenerCount() { return this._listeners.length; }
@@ -22,6 +32,7 @@ export default class Observable {
   removeAll() { this._listeners = []; }
 
   emit(...data) {
+    if(this._paused) return;
     this._listeners.forEach(listener => listener(...data));
   }
 }

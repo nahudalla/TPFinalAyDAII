@@ -13,16 +13,17 @@ const log = [];
 
 container.addEventListener('mouseenter', e => scrollDown(e.target));
 
-function addZero(num) {
-  if(num < 10) return '0'+num;
-  return num;
-}
-
 logger.addListener(FLAGS.ALL, (message, flags) => {
   const date = new Date();
 
-  let msg = `${addZero(date.getDay())}/${addZero(date.getMonth())}/${date.getFullYear()} `
-            + `${addZero(date.getHours())}:${addZero(date.getMinutes())}:${addZero(date.getSeconds())} `;
+  let msg = date.toLocaleString(undefined, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }) + ' ';
 
   if((flags & FLAGS.CRITICAL) !== 0) msg += "ERROR CRÍTICO: ";
   else if((flags & FLAGS.ERROR) !== 0) msg += "ERROR: ";

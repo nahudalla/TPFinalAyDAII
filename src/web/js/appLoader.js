@@ -1,5 +1,10 @@
 (()=>{
-  const third_party_libraries = ['download.js', 'paper-core.js', 'Sortable.js', 'threads.browser_v0.12.0.js'];
+  const third_party_libraries = [
+    'download.js',
+    'paper-core.js',
+    'Sortable.js',
+    'threads.browser_v0.12.0.js'
+  ];
 
   const message = document.getElementById('loadingMessage');
 

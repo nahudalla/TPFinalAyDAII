@@ -1,4 +1,5 @@
 import ToolBase from './ToolBase.js';
+import getActiveContext from '../../Context.js';
 
 export default class PointToolBase extends ToolBase {
   constructor(stage, options) {
@@ -27,6 +28,16 @@ export default class PointToolBase extends ToolBase {
     if(typeof this._options.cursor_invalid === 'string') {
       this.stage.interactive.setCursor(this._options.cursor_invalid);
     }
+  }
+
+  executeOnPoint(point) {
+    if(!this.canExecuteOnPoint) return;
+
+    if(!getActiveContext().pointsList.has(point)) {
+      throw new Error('The given position is not an active point.');
+    }
+
+    this._doClickAction(point);
   }
 
   activate() {

@@ -21,4 +21,6 @@ export default class RemovePointTool extends PointToolBase {
 
     getActiveContext().pointsList.remove(position);
   }
+
+  get canExecuteOnPoint() { return true; }
 }

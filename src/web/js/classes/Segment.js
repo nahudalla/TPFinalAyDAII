@@ -25,11 +25,15 @@ export default class Segment extends GeometricObject {
     return styles['Segment'];
   }
 
-  toPaperObject(stage, scale) {
-    return new stage.Line(
-      (new stage.Point(this._from.x, -this._from.y)).multiply(stage.settings.grid_size).multiply(scale),
-      (new stage.Point(this._to.x, -this._to.y)).multiply(stage.settings.grid_size).multiply(scale)
-    );
+  toPaperObject(stage, scale, applyStyles) {
+    return applyStyles(this, ()=> {
+      return new stage.Line(
+        (new stage.Point(this._from.x, -this._from.y)).multiply(stage.settings.grid_size)
+          .multiply(scale),
+        (new stage.Point(this._to.x, -this._to.y)).multiply(stage.settings.grid_size)
+          .multiply(scale)
+      );
+    });
   }
 
   equals(other) {

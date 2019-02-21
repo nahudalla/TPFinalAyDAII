@@ -23,10 +23,13 @@ export default class Point extends GeometricObject {
     return `${this._x}_${this._y}_Point`;
   }
 
-  toPaperObject(stage, scale) {
-    return new stage.Circle({
-      center: (new stage.Point(this._x, -this._y)).multiply(stage.settings.grid_size).multiply(scale),
-      radius: stage.settings.point_radius
+  toPaperObject(stage, scale, applyStyles) {
+    return applyStyles(this, ()=> {
+      return new stage.Circle({
+        center: (new stage.Point(this._x, -this._y)).multiply(stage.settings.grid_size)
+          .multiply(scale),
+        radius: stage.settings.point_radius
+      });
     });
   }
 

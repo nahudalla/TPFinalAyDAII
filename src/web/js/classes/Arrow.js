@@ -20,27 +20,29 @@ export default class Arrow extends GeometricObject {
     return `${this._from.hashString}_${this._to.hashString}_Arrow`;
   }
 
-  toPaperObject(stage, scale) {
+  toPaperObject(stage, scale, applyStyles) {
     const from = (new stage.Point(this._from.x, -this._from.y)).multiply(stage.settings.grid_size).multiply(scale);
     const to = (new stage.Point(this._to.x, -this._to.y)).multiply(stage.settings.grid_size).multiply(scale);
 
-    const group = new stage.Group();
+    return applyStyles(this, ()=>{
+      const group = new stage.Group();
 
-    group.addChild(new stage.Line(from, to));
+      group.addChild(new stage.Line(from, to));
 
-    const arrCoords = calculateArrow(this._from, this._to, scale);
+      const arrCoords = calculateArrow(this._from, this._to, scale);
 
-    group.addChild(new stage.Line(
-      (new stage.Point(arrCoords.x1, -arrCoords.y1)).multiply(stage.settings.grid_size).multiply(scale),
-      to
-    ));
+      group.addChild(new stage.Line(
+        (new stage.Point(arrCoords.x1, -arrCoords.y1)).multiply(stage.settings.grid_size).multiply(scale),
+        to
+      ));
 
-    group.addChild(new stage.Line(
-      (new stage.Point(arrCoords.x2, -arrCoords.y2)).multiply(stage.settings.grid_size).multiply(scale),
-      to
-    ));
+      group.addChild(new stage.Line(
+        (new stage.Point(arrCoords.x2, -arrCoords.y2)).multiply(stage.settings.grid_size).multiply(scale),
+        to
+      ));
 
-    return group;
+      return group;
+    });
   }
 
   selectStyle(styles) {

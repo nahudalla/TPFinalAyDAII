@@ -29,14 +29,19 @@ export default class StageWithGeometricObjectsBase extends StageBase {
   }
 
   _addObj(obj, style) {
-    const selectedStyle = obj.selectStyle(style) || obj.selectStyle(this._styles);
+    const o = obj.toPaperObject(this.stage, this._scaleCoords ? this.stage.zoom : 1, (obj, callback) => {
+      const selectedStyle = obj.selectStyle(style) || obj.selectStyle(this._styles);
 
-    if(selectedStyle) this._pushStyle(selectedStyle);
+      if(selectedStyle) this._pushStyle(selectedStyle);
 
-    const o = obj.toPaperObject(this.stage, this._scaleCoords ? this.view.zoom : 1);
+      const ret = callback();
+
+      if(selectedStyle) this._popStyle();
+
+      return ret;
+    });
+
     this._layer.addChild(o);
-
-    if(selectedStyle) this._popStyle();
 
     return o;
   }

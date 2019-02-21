@@ -55,6 +55,10 @@ const DEFAULT_STAGE_SETTINGS = {
     Point: {fillColor: '#F70'},
     Segment: {strokeColor: '#07F', strokeWidth: 3},
     Arrow: {strokeColor: '#0AF', strokeWidth: 2}
+  },
+  point_selected_style: {
+    fillColor: '#FFA700',
+    radius: 10
   }
 };
 

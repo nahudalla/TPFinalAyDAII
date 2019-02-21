@@ -5,4 +5,4 @@ import './ui/pointsList.js';
 import './ui/UISetup.js';
 import log from './logger.js';
 
-log(log.FLAGS.INFO, "Listo.");
+log(log.FLAGS.INFO, "Carga completada.");

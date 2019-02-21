@@ -2,13 +2,68 @@ import Point from "./Point.js";
 import Observable from "./Observable.js";
 
 export default class PointsList {
-  constructor() {
+  constructor(settings) {
     this._orderedPoints = [];
     this._points = new Map();
 
     this._addEvent = new Observable();
     this._removeEvent = new Observable();
     this._reorderEvent = new Observable();
+
+    this._changedEvent = new Observable();
+
+    this._maxHistory = (settings && settings.maxHistory) || 77;
+    this._undoRedoInProgress = false;
+    this._undoHist = [];
+    this._redoHist = [];
+
+    this._changedEvent.subscribe((...data) => {
+      if(this._undoRedoInProgress) return;
+      this._redoHist = [];
+      this._undoHist.push(data);
+      if(this._undoHist.length > this._maxHistory) this._undoHist.splice(0, 1);
+    });
+
+    this._addEvent.subscribe(this._changedEvent.emit.bind(this._changedEvent, 'add'));
+    this._removeEvent.subscribe(this._changedEvent.emit.bind(this._changedEvent, 'remove'));
+    this._reorderEvent.subscribe(this._changedEvent.emit.bind(this._changedEvent, 'reorder'));
+  }
+
+  get undoAvailable() {return this._undoHist.length !== 0;}
+  get redoAvailable() {return this._redoHist.length !== 0;}
+
+  undo() {
+    if(this._undoRedoInProgress || !this.undoAvailable) return;
+
+    this._undoRedoInProgress = true;
+
+    const action = this._undoHist.pop();
+    const [type, point, , wasBeforePoint] = action;
+
+    this._redoHist.push(action);
+
+    if(type === 'add') this.remove(point);
+    else if(type === 'remove') this.add(point);
+    else if(type === 'reorder') this.reorder(point, wasBeforePoint);
+
+    this._undoRedoInProgress = false;
+  }
+
+  redo() {
+    if(this._undoRedoInProgress || !this.redoAvailable) return;
+
+    this._undoRedoInProgress = true;
+
+    const action = this._redoHist.pop();
+    const [type, point, beforePoint] = action;
+
+    this._undoHist.push(action);
+
+    if(type === 'add') this.add(point);
+    else if(type === 'remove') this.remove(point);
+    else if(type === 'reorder') this.reorder(point, beforePoint);
+
+    this._undoRedoInProgress = false;
   }
 
   buildInt32CoordinatesArray() {
@@ -27,6 +82,10 @@ export default class PointsList {
     return this._reorderEvent;
   }
 
+  get changedEvent() {
+    return this._changedEvent;
+  }
+
   forEach(fn) {
     for(let i = 0; i < this._orderedPoints.length; i += 2) {
       fn(new Point(this._orderedPoints[i], this._orderedPoints[i+1]))
@@ -43,6 +102,14 @@ export default class PointsList {
     const oldIndex = this._points.get(key);
 
     if(oldIndex !== 0 && !oldIndex) return;
+
+    let wasBeforePoint = null;
+    if(oldIndex < this._orderedPoints.length-2) {
+      wasBeforePoint = new Point(
+        this._orderedPoints[oldIndex+2],
+        this._orderedPoints[oldIndex+3]
+      );
+    }
 
     if(!beforePoint) {
       this._orderedPoints.splice(oldIndex, 2);
@@ -64,7 +131,7 @@ export default class PointsList {
       }
     }
 
-    this._reorderEvent.emit(point, beforePoint);
+    this._reorderEvent.emit(point, beforePoint, wasBeforePoint);
   }
 
   add(point) {
@@ -92,15 +159,16 @@ export default class PointsList {
       throw new TypeError("Not an instance of Point");
     }
 
-    const key = point.hashString;
+    if(this._points.has(point.hashString)) {
+      this.reorderEvent.paused = true;
+      this.reorder(point);
+      this.reorderEvent.paused = false;
 
-    const index = this._points.get(key);
+      this._points.delete(point.hashString);
+      this._orderedPoints.splice(this._orderedPoints.length-2, 2);
 
-    if(!this._points.delete(key)) return;
-
-    this._orderedPoints.splice(index, 2);
-
-    this.removeEvent.emit(point);
+      this.removeEvent.emit(point);
+    }
   }
 
   has(point) {
@@ -112,8 +180,13 @@ export default class PointsList {
     this._points = new Map();
     this._orderedPoints = [];
 
+    this._undoRedoInProgress = true;
+    this._redoHist = [];
+    this._undoHist = [];
+
     for(let i = 0; i < points.length; i += 2) {
       this.removeEvent.emit(new Point(points[i], points[i+1]))
     }
+    this._undoRedoInProgress = false;
   }
 }

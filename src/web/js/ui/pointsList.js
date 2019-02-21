@@ -74,6 +74,7 @@ function onDeactivate(context) {
   context.pointsList.addEvent.unsubscribe(addPoint);
   context.pointsList.removeEvent.unsubscribe(removePoint);
   context.deactivateEvent.unsubscribe(onDeactivate);
+  while(container.firstChild) container.removeChild(container.firstChild);
 }
 
 function addPoint(point) {
@@ -83,11 +84,39 @@ function addPoint(point) {
 
 function removePoint(point) {
   const elem = container.querySelector(`[data-x='${point.x}'][data-y='${point.y}']`);
+  getActiveContext().stage.interactive.removeObject(point);
   container.removeChild(elem);
 }
 
 function generateElement(point) {
   const li = document.createElement('li');
+
+  li.addEventListener('mouseover', ()=>{
+    const stage = getActiveContext().stage;
+
+    const interactiveStage = stage.interactive;
+
+    interactiveStage.addObject(point, {Point:stage.settings.point_selected_style});
+
+    const tool = getActiveContext().stage.tools.activeTool;
+
+    if(!tool.canExecuteOnPoint) return;
+
+    li.style.cursor = "pointer";
+  });
+
+  li.addEventListener('mouseout', ()=>{
+    getActiveContext().stage.interactive.removeObject(point);
+    li.style.cursor = "default";
+  });
+
+  li.addEventListener('click', ()=>{
+    const tool = getActiveContext().stage.tools.activeTool;
+
+    if(!tool.canExecuteOnPoint) return;
+
+    tool.executeOnPoint(point);
+  });
 
   const icon = document.createElement('span');
   icon.className = 'material-icons';

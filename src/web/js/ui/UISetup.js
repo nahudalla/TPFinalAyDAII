@@ -7,7 +7,7 @@ const NORMAL_BACK_CANVAS_ID = "canvas_normal_back";
 const NORMAL_FRONT_CANVAS_ID = "canvas_normal_front";
 const INTERACTIVE_CANVAS_ID = "canvas_interactive";
 
-const context = new Context({
+new Context({
   stage: {
     views: {
       axes: document.getElementById(AXES_CANVAS_ID),
@@ -19,10 +19,3 @@ const context = new Context({
     use_active_paper_scope: true
   }
 });
-
-context.pointsList.add(new Point(0,0));
-context.pointsList.add(new Point(3,3));
-context.pointsList.add(new Point(3,-3));
-context.pointsList.add(new Point(-3,3));
-context.pointsList.add(new Point(-3,-3));
-context.pointsList.add(new Point(-1,-1));

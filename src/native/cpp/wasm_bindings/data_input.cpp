@@ -83,6 +83,8 @@ val EMSCRIPTEN_KEEPALIVE wasm_bindings::prepare_array_of_points_input() {
 val EMSCRIPTEN_KEEPALIVE wasm_bindings::prepare_list_of_segments_input() {
     if(inputData.coords == nullptr) return generateRawInputNotSetError();
 
+    if(inputData.length < 4) return generateInvalidInputError();
+
     List<Segment> list;
 
     for(std::size_t i = 0; i < inputData.length-3; i += 4) {

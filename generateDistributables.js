@@ -5,6 +5,8 @@
 const zipper = require('zip-a-folder');
 const FS = require('fs');
 const rimraf = require('rimraf');
+const {valid, lt} = require('semver');
+const fetch = require('node-fetch');
 
 const OUTPUT_DIRECTORY = "./dist";
 const CONTENT_DIRECTORY = `${OUTPUT_DIRECTORY}/public`;
@@ -69,7 +71,42 @@ void async function main() {
     return;
   }
 
+  if(!valid(version)) {
+    console.error('Invalid version in package.json!');
+    return;
+  }
+
   console.log(`Version is: ${version}`);
+
+  console.log('Obtaining latest published release version from server...')
+
+  const response = await fetch(`${BASE_URL}/${RELEASE_JSON_FILENAME}`, {
+    cache: "no-cache",
+    headers: {"Accept": "application/json"},
+    method: 'GET'
+  });
+
+  if(!response.ok) {
+    console.error(
+      `Failed to fetch app information from online source. Status code: ${response.status}`,
+      response.statusText
+    );
+    return;
+  }
+
+  const server_json = await response.json();
+
+  if(!server_json || !server_json.version || !valid(server_json.version)) {
+    console.error('Invalid version information from server.');
+    return;
+  }
+
+  if(!lt(server_json.version, version)) {
+    console.error(`Version from "package.json" (${version}) is not greater than latest `
+                + `published version from server (${server_json.version}). Please update version `
+                + `information in "package.json".`);
+    return;
+  }
 
   console.log('Reading changelog...');
 

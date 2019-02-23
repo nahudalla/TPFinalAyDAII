@@ -27,13 +27,8 @@ namespace algor {
 
         explicit JarvisMarch(List<Point> points) {
             {
-                // PRECONDICION: La lista tiene que tener al menos tres puntos
-                auto it1 = points.begin();
-                auto it2 = it1; ++it2;
-                auto it3 = it2; ++it3;
-                auto end = points.end();
-
-                if(it1 == end || it2 == end || it3 == end) {
+                // PRECONDICION: La lista tiene que tener al menos tres puntos que no sean colineales
+                if(points.length() < 3) {
                     return;
                 }
             }
@@ -115,7 +110,9 @@ namespace algor {
                 current = this->points->remove(it_next);
             }while(current != last);
 
-            this->result = result;
+            // PRECONDICION: La lista tiene que tener al menos tres puntos que no sean colineales
+            if(result.size() >= 3) this->result = result;
+
             this->highest = std::nullopt;
             this->lowest = std::nullopt;
             this->points = std::nullopt;

@@ -208,10 +208,10 @@ namespace algor {
 
             T elem = std::move(it.curr->elem);
 
-            delete it.curr;
-
             if (this->first == it.curr) this->first = next;
             if (this->last == it.curr) this->last = it.prev;
+
+            delete it.curr;
 
             return std::move(elem);
         }
@@ -270,15 +270,17 @@ namespace algor {
             auto it = this->begin();
             auto end = this->end();
 
-            for(; it != end; ++it) {
-                if(condition(it, end)) this->remove(it);
-
-                if(it_prev == end) {
-                    it_prev = this->begin();
-                    it = it_prev;
+            while(it != end) {
+                if(condition(it, end)){
+                    this->remove(it);
+                    if(it_prev == end) it = this->begin();
+                    else {
+                        it = it_prev;
+                        ++it;
+                    }
                 } else {
-                    it_prev++;
-                    it = it_prev;
+                    ++it;
+                    ++it_prev;
                 }
             }
         }

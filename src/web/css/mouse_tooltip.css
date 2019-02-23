@@ -1,0 +1,11 @@
+.mouseToolTip {
+    position: absolute;
+    z-index: 999999;
+    top: -250px;
+    left: -250px;
+    padding: 5px;
+    border-radius: 7px;
+    background-color: #353535;
+    color: #FFF;
+    text-shadow: 0 0 1px #C3C3C3;
+}

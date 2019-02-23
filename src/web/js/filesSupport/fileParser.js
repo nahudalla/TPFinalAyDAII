@@ -4,7 +4,7 @@ export class ParserError extends Error {
   }
 }
 
-import Point from './Point.js'
+import Point from '../classes/Point.js'
 
 export default function parse(str) {
   const lines = str.split('\n');

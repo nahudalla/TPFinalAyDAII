@@ -21,10 +21,10 @@ class Logger {
     this._listeners.push({flags, listener});
   }
 
-  log(flags, message) {
+  log(flags, message, ...data) {
     this._listeners.forEach(list => {
       if((list.flags & flags) !== 0) {
-        list.listener(message, flags);
+        list.listener(message, flags, ...data);
       }
     });
   }

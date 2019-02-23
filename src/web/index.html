@@ -2,57 +2,157 @@
 <html lang="es">
   <head>
     <meta charset="utf-8">
-    <title></title>
-    <link rel="stylesheet" type="text/css" href="css/app.css" />
+    <title>TP Final Análisis y Diseño de Algoritmos II</title>
+    <style type="text/css">
+      .loadingMessage {
+        display: table;
+        position: fixed;
+        z-index: 999999999999999;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #FFF;
+      }
+
+      .loadingMessage > span {
+        display: table-cell;
+        vertical-align: middle;
+        text-align: center;
+        font-family: Arial, sans-serif;
+        font-size: 36px;
+        font-weight: bolder;
+        color: #999;
+        animation: loadingMessageAnimation ease-in-out 1s infinite;
+
+      }
+
+      #loadingMessage {
+        font-weight: normal;
+        font-size: 13px;
+        font-style: oblique;
+        color: #AAA;
+      }
+
+      @keyframes loadingMessageAnimation {
+        0% {
+          color: #999;
+        }
+        50% {
+          color: #333;
+        }
+        100% {
+          color: #999;
+        }
+      }
+    </style>
   </head>
   <body>
+    <div class="loadingMessage">
+      <span>Cargando...<br><span id="loadingMessage">Preparando carga...</span></span>
+    </div>
     <div class="canvasContainer">
-      <canvas id="canvas"></canvas>
+      <div id="algorithmResultToolsContainer">
+        <div class="top">
+          <div class="title">Resultado de ejecución</div>
+          <div class="material-icons close" id="hideResultToolsBtn" title="Cerrar resultados de ejecución">close</div>
+        </div>
+        <div id="algorithmResultText"></div>
+        <button id="makeResultInteractiveBtn" class="hidden">
+          Habilitar reproducción paso a paso
+        </button>
+        <div id="executingAlgorithmMsgContainer" class="hidden">
+          <span class="material-icons">sync</span>
+          <span id="executingAlgorithmMsg"></span>
+        </div>
+        <div>
+          <button id="cancelAlgorithmExecutionBtn" class="abort hidden">
+            CANCELAR EJECUCIÓN
+          </button>
+        </div>
+        <div id="algorithmInteractiveResultControls" class="controls hidden">
+          <ul>
+            <li class="material-icons" title="Ir al inicio (Ctrl + Alt + Flecha izquierda)" id="goToStartResultBtn">skip_previous</li>
+            <li class="material-icons" title="Retroceder (Alt + Flecha izquierda)" id="goToPrevResultBtn">fast_rewind</li>
+            <li class="speed_selector" title="Velocidad de reproducción">
+              <select id="resultPlaybackSpeed">
+                <option>0.25x</option>
+                <option>0.50x</option>
+                <option selected>1x</option>
+                <option>1.25x</option>
+                <option>1.50x</option>
+                <option>2x</option>
+                <option>2.50x</option>
+                <option>3x</option>
+              </select>
+            </li>
+            <li class="material-icons" title="Reproducir (Barra espaciadora)" id="playStepsResultBtn">play_arrow</li>
+            <li class="material-icons hidden" title="Pausar (Barra espaciadora)" id="pauseStepsResultBtn">pause</li>
+            <li class="material-icons" title="Avanzar (Alt + Flecha derecha)" id="goToNextResultBtn">fast_forward</li>
+            <li class="material-icons" title="Ir al final (Ctrl + Alt + Flecha derecha)" id="goToEndResultBtn">skip_next</li>
+          </ul>
+          <input type="range" min="0" max="10" step="1" id="resultPlaybackStep" value="0">
+        </div>
+      </div>
+      <canvas id="canvas_axes" data-paper-resize="true"></canvas>
+      <canvas id="canvas_normal_back" data-paper-resize="true"></canvas>
+      <canvas id="canvas_zoomed" data-paper-resize="true"></canvas>
+      <canvas id="canvas_normal_front" data-paper-resize="true"></canvas>
+      <canvas id="canvas_interactive" data-paper-resize="true"></canvas>
     </div>
     <div class="sidebar">
       <div class="header">Algoritmos</div>
+      <div class="algorithms">
+        <select title="Algoritmo a ejecutar" id="algorithmSelect"></select>
+        <span class="material-icons" title="Ejecutar algoritmo" id="executeAlgorBtn">play_circle_outline</span>
+      </div>
       <div class="header">Herramientas</div>
       <div class="tools">
         <ul>
-          <li class="material-icons selected" title="Mover vista">pan_tool</li>
-          <li class="material-icons" title="Acercar">zoom_in</li>
-          <li class="material-icons" title="Alejar">zoom_out</li>
-          <li class="material-icons" title="Cargar puntos de archivo" id="loadFileBtn">open_in_browser</li>
+          <li class="material-icons" title="Mover vista (Ctrl + Click)" id="panToolBtn">pan_tool</li>
+          <li class="material-icons" title="Acercar vista" id="zoomInToolBtn">zoom_in</li>
+          <li class="material-icons" title="Alejar vista" id="zoomOutToolBtn">zoom_out</li>
+          <li class="material-icons" title="Cargar puntos de archivo" id="loadFileBtn">input</li>
           <li class="material-icons" title="Guardar puntos en archivo" id="saveFileBtn">save</li>
-          <li class="material-icons" title="Borrar todo" id="clearAllBtn">delete_forever</li>
+          <li class="material-icons" title="Borrar todos los puntos" id="clearAllBtn">delete_forever</li>
         </ul>
         <ul>
-          <li class="material-icons" title="Agregar">add_circle</li>
-          <li class="material-icons" title="Eliminar">remove_circle</li>
-          <li class="material-icons" title="Mover punto">open_with</li>
+          <li class="material-icons" title="Agregar punto (Shift + Click)" id="addPointBtn">add_circle</li>
+          <li class="material-icons" title="Eliminar punto (Alt + Click)" id="removePointBtn">remove_circle</li>
+          <li class="material-icons disabled" title="Deshacer (Ctrl + Z)" id="undoBtn">undo</li>
+          <li class="material-icons disabled" title="Rehacer (Ctrl + Shift + Z)" id="redoBtn">redo</li>
         </ul>
       </div>
-      <div class="header">Puntos</div>
+      <div class="header" id="pointsHeader">Puntos</div>
       <div class="pointsList">
         <ul id="pointsList"></ul>
       </div>
       <div class="footer">
-        Trabajo para final de Análisis y Diseño de Algoritmos I<br>
+        Trabajo para final de Análisis y Diseño de Algoritmos I y II<br>
         Universidad Nacional del Centro de la Provincia de Buenos Aires, Argentina<br>
         Desarrollado por Nahuel Dallacamina Ortea<br>
-        Noviembre/Diciembre 2018
+        Noviembre 2018 - Febrero 2019
       </div>
     </div>
+    <div id="updateAvailableMessage">
+      <div class="main">
+        <span class="material-icons">cloud_download</span>
+        <span>Nueva versión disponible</span>
+      </div>
+      <div class="download">
+        Click para descargar
+        <div id="newUpdateDownloadLink" data-link=""></div>
+      </div>
+      <button id="updateChangelogBtn">Ver cambios</button>
+    </div>
     <div class="statusBar">
-      <div></div>
+      <div class="log"></div>
       <span></span>
     </div>
-    <script type="text/javascript" src="third_party/download.js"></script>
+    <script src="third_party/Sentry.4.6.3.bundle.min.js" crossorigin="anonymous"></script>
     <script type="text/javascript">
-      var Module = {
-        onRuntimeInitialized: function() {
-          let script = document.createElement('script');
-          script.type = "module";
-          script.src = "js/main.js";
-          document.body.appendChild(script);
-        }
-      };
+      Sentry.init({ dsn: 'https://ced1d627906e454fa8f437392884f1c6@sentry.io/1400004', environment:'development' });
     </script>
-    <script type="text/javascript" src="wasm/WASMModule.js"></script>
+    <script type="text/javascript" src="js/appLoader.js"></script>
   </body>
 </html>

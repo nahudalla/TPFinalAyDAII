@@ -27,21 +27,11 @@ namespace algor {
         }
 
         explicit GrahamScan(List<Point> points) {
-            {
-                // PRECONDICION: La lista tiene que tener al menos tres puntos que no sean colineales
-                auto it1 = points.begin();
-                auto it2 = it1; ++it2;
-                auto it3 = it2; ++it3;
-                auto end = points.end();
-
-                if(it1 == end || it2 == end || it3 == end
-                    || Vector(*it1, *it2).isColinear(Vector(*it1, *it3))) {
-                    return;
-                }
-            }
-
             typedef Comparator<Point>::ComparatorFunction CompFn;
             typedef Comparator<Point>::Result CompRes;
+
+            // PRECONDICION: La lista tiene que tener al menos tres puntos que no sean colineales
+            if(points.length() < 3) return;
 
             {
                 auto it = points.findMinimum((CompFn) [](const Point &lhs, const Point &rhs) -> CompRes {
@@ -75,6 +65,12 @@ namespace algor {
 
                 return Vector(p0, *it).isColinear(Vector(p0, *next));
             });
+
+            // PRECONDICION: La lista tiene que tener al menos tres puntos que no sean colineales (contando p0)
+            if(points.length() < 2) {
+                this->p0 = std::nullopt;
+                return;
+            }
 
             this->sortedPoints = points;
         }

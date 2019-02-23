@@ -3,8 +3,12 @@
 @import "main.css";
 @import "sidebar.css";
 @import "sidebar_common.css";
+@import "sidebar_algorithms.css";
 @import "sidebar_tools.css";
 @import "sidebar_pointsList.css";
 @import "sidebar_footer.css";
 @import "drop_file_overlay.css";
 @import "status_bar.css";
+@import "mouse_tooltip.css";
+@import "algorithm_result_tools.css";
+@import "update_message.css";

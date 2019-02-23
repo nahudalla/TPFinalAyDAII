@@ -12,7 +12,18 @@ if(USE_EMSCRIPTEN_TOOLCHAIN)
         message("Emscripten root found: ${EMSCRIPTEN_ROOT}")
         message("Setting up Emscripten toolchain...")
         set(CMAKE_TOOLCHAIN_FILE ${EMSCRIPTEN_ROOT}/cmake/Modules/Platform/Emscripten.cmake)
-        set(CMAKE_CXX_FLAGS "-s WASM=1")
+        string(CONCAT CMAKE_CXX_FLAGS
+                " --bind"
+                " -fno-exceptions"
+                " -s WASM=1"
+                " -s ENVIRONMENT=worker"
+                " -s MODULARIZE=1"
+                " -s EXIT_RUNTIME=0"
+                " -s FILESYSTEM=0"
+                " -s EXPORT_NAME=WASMModule"
+                " -s ALLOW_MEMORY_GROWTH=1"
+                " -s \"EXTRA_EXPORTED_RUNTIME_METHODS=['ccall']\""
+        )
     endif()
 endif()
 
@@ -58,6 +69,16 @@ set(CLI_SOURCE_FILES
         src/native/cpp/cli/logger_setup.cpp
 )
 
+set(WASM_SOURCE_FILES
+        src/native/cpp/wasm_bindings/data_input.cpp
+        src/native/cpp/wasm_bindings/errors.cpp
+        src/native/cpp/wasm_bindings/graham_scan.cpp
+        src/native/cpp/wasm_bindings/utils.cpp
+        src/native/cpp/wasm_bindings/jarvis_march.cpp
+        src/native/cpp/wasm_bindings/closest_points.cpp
+        src/native/cpp/wasm_bindings/any_segments_intersect.cpp
+)
+
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Emscripten")
     set(WASM_MODULE_NAME WASMModule)
 
@@ -65,7 +86,7 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Emscripten")
 
     set(WASM_BUILD_DIR ${PROJECT_SOURCE_DIR}/web-build-${WASM_BUILD_TYPE}/wasm)
 
-    add_executable(${WASM_MODULE_NAME} ${SOURCE_FILES} src/native/cpp/wasm.cpp)
+    add_executable(${WASM_MODULE_NAME} ${SOURCE_FILES} ${WASM_SOURCE_FILES})
     add_custom_command(
             TARGET ${WASM_MODULE_NAME}
             POST_BUILD

@@ -6,8 +6,8 @@
     z-index: 333;
     border-top: #999 1px solid;
     box-sizing: border-box;
-    padding: 3px 5px;
-    overflow-y: auto;
+    padding:0;
+    overflow: hidden;
     background-color: rgb(245,245,245);
     transition: height 50ms linear;
 }
@@ -15,24 +15,33 @@
 .statusBar:hover {
     padding: 10px;
     height: 300px;
+    overflow-y: auto;
 }
 
-.statusBar > div {
+.statusBar > div.log {
     display: none;
     font-size: 1.2em;
 }
 
-.statusBar > div > div + div{
+.statusBar > div.log > div + div{
     margin-top: 5px;
 }
 
 .statusBar > span {
-    line-height: 18px;
+    position: absolute;
+    top: 3px;
+    left: 5px;
+    right: 5px;
+    bottom: 3px;
+    display: block;
     font-size: 1.2em;
     color: #777;
+    white-space: nowrap;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
 }
 
-.statusBar:hover > div {
+.statusBar:hover > div.log {
     display: block;
 }
 

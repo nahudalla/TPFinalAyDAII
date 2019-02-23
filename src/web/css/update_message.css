@@ -1,0 +1,114 @@
+#updateAvailableMessage {
+    display: none;
+    overflow: hidden;
+    position: fixed;
+    text-align: center;
+    top: 0;
+    left: 5px;
+    z-index: 444;
+    padding: 3px 5px;
+    background-color: #bf0707;
+    box-shadow: 0 0 2px #000;
+    border-top: 0;
+    border-radius: 0 0 5px 5px;
+    cursor: pointer;
+    color: #FFFFFF;
+    max-width: fit-content;
+}
+
+#updateAvailableMessage:hover {
+    padding-bottom: calc(1.2em + 4px);
+}
+
+#updateAvailableMessage.shown {
+    display: block;
+}
+
+#updateAvailableMessage > div.main {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    font-weight: bolder;
+}
+
+#updateAvailableMessage > div.main > span {
+    flex: 0 0 auto;
+}
+
+#updateAvailableMessage > div.main > span.material-icons {
+    font-size: 1.5em;
+    margin-right: 5px;
+}
+
+#updateAvailableMessage > div.download {
+    display: none;
+}
+
+#updateAvailableMessage:hover > div.download {
+    display: block;
+}
+
+#updateAvailableMessage:hover > div.download > #newUpdateDownloadLink {
+    color: #72f6ff;
+    font-weight: bolder;
+    text-decoration: underline;
+    display: block;
+    width: 100%;
+    height: 1.2em;
+    position: absolute;
+    overflow: hidden;
+    text-shadow: 0 0 1px #000;
+    margin-top: 2px;
+}
+
+#updateAvailableMessage:hover > div.download > #newUpdateDownloadLink::before {
+    content: attr(data-link);
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 17s linear infinite;
+}
+
+#updateAvailableMessage:hover > div.download > #newUpdateDownloadLink:hover::before {
+    animation-play-state: paused;
+}
+
+#updateAvailableMessage > button {
+    display: none;
+}
+
+#updateAvailableMessage:hover > button {
+    margin-top: calc(1.2em + 4px);
+    background-color: rgba(0,0,0,.15);
+    border: rgba(0,0,0,.2) 1px solid;
+    border-radius: 3px;
+    font-weight: bolder;
+    color: rgba(255,255,255,.5);
+    cursor: pointer;
+    outline: none;
+}
+
+#updateAvailableMessage.changelogAvailable:hover {
+    padding-bottom: 5px;
+}
+
+#updateAvailableMessage.changelogAvailable:hover > button {
+    display: inline-block;
+}
+
+#updateAvailableMessage:hover > button:hover {
+    background-color: rgba(0,0,0,.5);
+    border: rgba(0,0,0,.7) 1px solid;
+    color: rgba(255,255,255,1);
+}
+
+#updateAvailableMessage:hover > button:active {
+    background-color: rgba(255,255,255,.5);
+    border: rgba(0,0,0,.7) 1px solid;
+    color: rgba(0,0,0,1);
+}
+
+@keyframes marquee {
+    0%   { transform: translate(0, 0); }
+    100% { transform: translate(-100%, 0); }
+}

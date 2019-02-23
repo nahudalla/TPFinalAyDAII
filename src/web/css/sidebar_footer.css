@@ -4,3 +4,9 @@
     color: #AAA;
     border-top: #AAA 1px solid;
 }
+
+@media screen and (max-height: 450px) {
+    .sidebar > .footer {
+        display: none;
+    }
+}

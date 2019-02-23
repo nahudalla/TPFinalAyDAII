@@ -44,13 +44,21 @@ const FIREBASE_CONFIG = {
       "**/.*",
       "**/node_modules/**"
     ],
-    "headers": [ {
-      "source": "*",
-      "headers": [ {
-        "key": "Access-Control-Allow-Origin",
-        "value": "*"
-      } ]
-    } ]
+    "headers": [
+      {
+        "source": "*",
+        "headers": [
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          },
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      }
+    ]
   }
 };
 

@@ -26,6 +26,12 @@ export class Context {
     this._pointsList = new PointsList(settings.pointsList);
     this._algorithms = new Algorithms(this);
 
+    this._algorithms.enabledAlgorithmsChangedEvent.subscribe(()=>{
+      Sentry.configureScope((scope) => {
+        scope.setExtra("algorithms", this._algorithms.enabledAlgorithms.map(algor=>algor.id));
+      });
+    });
+
     this._pointsList.addEvent.subscribe(point => {
       this._stage.zoomed.addObject(point);
     });

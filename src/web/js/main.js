@@ -3,6 +3,7 @@ import './ui/fileDrop.js';
 import './ui/tools.js';
 import './ui/pointsList.js';
 import './ui/UISetup.js';
+import './updateChecker.js';
 import log from './logger.js';
 
 log(log.FLAGS.INFO, "Carga completada.");

@@ -1,4 +1,4 @@
-.algorithmResultToolsContainer {
+#algorithmResultToolsContainer {
     position: relative;
     z-index: 333;
     margin: 0 auto;
@@ -13,22 +13,22 @@
     box-sizing: border-box;
 }
 
-.algorithmResultToolsContainer.show-animation {
+#algorithmResultToolsContainer.show-animation {
     animation: show-results-tools 300ms forwards;
 }
 
-.algorithmResultToolsContainer.shown-state {
+#algorithmResultToolsContainer.shown-state {
     box-shadow: 0 0 10px rgba(0,0,0,.5);
     padding: 5px;
     padding-bottom: 13px;
     max-height: 100%;
 }
 
-.algorithmResultToolsContainer.hide-animation {
+#algorithmResultToolsContainer.hide-animation {
     animation: show-results-tools 300ms reverse forwards;
 }
 
-.algorithmResultToolsContainer.hidden-state {
+#algorithmResultToolsContainer.hidden-state {
     box-shadow: 0 0 0 rgba(0,0,0,0);
     padding: 0;
     max-height: 0;
@@ -49,12 +49,12 @@
     }
 }
 
-.algorithmResultToolsContainer > .top {
+#algorithmResultToolsContainer > .top {
     display: flex;
     flex-direction: row;
 }
 
-.algorithmResultToolsContainer > .top > .title {
+#algorithmResultToolsContainer > .top > .title {
     flex: 1 1 auto;
     margin-right: 100px;
     vertical-align: middle;
@@ -64,7 +64,7 @@
     text-transform: uppercase;
 }
 
-.algorithmResultToolsContainer > .top > .close {
+#algorithmResultToolsContainer > .top > .close {
     flex: 0 0 auto;
     margin: 0;
     padding: 7px;
@@ -73,12 +73,11 @@
     font-weight: bolder;
 }
 
-.algorithmResultToolsContainer > #algorithmResultText {
-    text-align: left;
+#algorithmResultToolsContainer > #algorithmResultText {
     margin-bottom: 5px;
 }
 
-.algorithmResultToolsContainer > button {
+#algorithmResultToolsContainer button {
     background-color: #FFFFFF;
     border-radius: 5px;
     padding: 7px;
@@ -89,24 +88,31 @@
     color: #333;
 }
 
-.algorithmResultToolsContainer > button:hover,
-.algorithmResultToolsContainer > button:active {
+#algorithmResultToolsContainer button.abort {
+    background-color: #b72416;
+    color: #FFF;
+    font-weight: bolder;
+    margin-top: 5px;
+}
+
+#algorithmResultToolsContainer button:hover,
+#algorithmResultToolsContainer button:active {
     background-color: #DDD;
     color: #000;
     border-color: #333;
 }
 
-.algorithmResultToolsContainer > button:active {
+#algorithmResultToolsContainer button:active {
     background-color: #333;
     color: #FFF;
 }
 
-.algorithmResultToolsContainer > .executingAlgorithmMsgContainer {
+#algorithmResultToolsContainer > #executingAlgorithmMsgContainer {
     display: inline-flex;
     line-height: calc(1.5em + 10px);
 }
 
-.algorithmResultToolsContainer > .executingAlgorithmMsgContainer > .material-icons {
+#algorithmResultToolsContainer > #executingAlgorithmMsgContainer > .material-icons {
     flex: 0 0 auto;
     padding: 5px;
     font-size: 1.5em;
@@ -127,12 +133,12 @@
     }
 }
 
-.algorithmResultToolsContainer > .controls {
+#algorithmResultToolsContainer > .controls {
     display: inline-flex;
     flex-direction: column;
 }
 
-.algorithmResultToolsContainer > .controls > ul {
+#algorithmResultToolsContainer > .controls > ul {
     flex: 0 0 auto;
     list-style-type: none;
     display: inline-flex;
@@ -140,7 +146,7 @@
     padding: 0;
 }
 
-.algorithmResultToolsContainer > .controls > ul > li.material-icons {
+#algorithmResultToolsContainer > .controls > ul > li.material-icons {
     flex: 0 0 auto;
     margin: 0;
     padding: 5px;
@@ -152,21 +158,21 @@
     color: #000;
 }
 
-.algorithmResultToolsContainer > .controls > ul > li:hover {
+#algorithmResultToolsContainer > .controls > ul > li:hover {
     text-shadow: 0 0 5px #777;
 }
 
-.algorithmResultToolsContainer > .controls > ul > li:active {
+#algorithmResultToolsContainer > .controls > ul > li:active {
     text-shadow: 0 0 5px #999;
     color: #555;
 }
 
-.algorithmResultToolsContainer > .controls > ul > li.speed_selector {
+#algorithmResultToolsContainer > .controls > ul > li.speed_selector {
     flex: 0 0 auto;
     padding: 5px
 }
 
-.algorithmResultToolsContainer > .controls > ul > li.speed_selector > select {
+#algorithmResultToolsContainer > .controls > ul > li.speed_selector > select {
     height: 2em;
     text-align-last: right;
     background-color: #FFF;
@@ -177,21 +183,21 @@
     border-radius: 5px;
 }
 
-.algorithmResultToolsContainer > .controls > ul > li.speed_selector > select:hover {
+#algorithmResultToolsContainer > .controls > ul > li.speed_selector > select:hover {
     border-color: #333333;
 }
 
-.algorithmResultToolsContainer > .controls > ul > li.speed_selector > select option {
+#algorithmResultToolsContainer > .controls > ul > li.speed_selector > select option {
     direction: rtl;
     cursor: pointer;
 }
 
-.algorithmResultToolsContainer > .controls > input {
+#algorithmResultToolsContainer > .controls > input {
     flex: 1 1 auto;
     outline: none;
     cursor: pointer;
 }
 
-.algorithmResultToolsContainer .hidden {
-    display: none;
+#algorithmResultToolsContainer .hidden {
+    display: none !important;
 }

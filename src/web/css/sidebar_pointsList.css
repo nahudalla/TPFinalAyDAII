@@ -21,11 +21,11 @@
 }
 
 .sidebar > .pointsList > ul > li > span.material-icons {
-    cursor: grab;
+    cursor: -webkit-grab;
 }
 
 .sidebar > .pointsList > ul > li > span.material-icons:active {
-    cursor: grabbing;
+    cursor: -webkit-grabbing;
 }
 
 .sidebar > .pointsList > ul > li > span + span {
@@ -39,7 +39,7 @@
 .sidebar > .pointsList > ul.reordering > li > span.material-icons,
 .sidebar > .pointsList > ul.reordering > li:hover
 {
-    cursor: grabbing;
+    cursor: -webkit-grabbing;
 }
 
 .sidebar > .pointsList > ul.reordering > li:hover

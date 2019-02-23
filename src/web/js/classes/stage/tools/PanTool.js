@@ -1,7 +1,7 @@
 import getActiveContext from '../../Context.js';
 
-const CURSOR_DEFAULT = 'grab';
-const CURSOR_DRAGGING = 'grabbing';
+const CURSOR_DEFAULT = '-webkit-grab';
+const CURSOR_DRAGGING = '-webkit-grabbing';
 
 import ToolBase from './ToolBase.js';
 

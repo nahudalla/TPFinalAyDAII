@@ -11,6 +11,19 @@ export default class AnySegmentsIntersect extends Algorithm {
     super._enableAlgorithmInputDraw();
   }
 
+
+  isValidResult(result) {return typeof result === 'boolean';}
+  generateResultMessage(result) {
+    if(!this.isValidResult(result)) throw new Error('Result is not valid.');
+    const span = document.createElement('span');
+    span.innerHTML = `<span style="font-weight:bolder">${result?'H':'No h'}ay</span> ${
+      result ? 'al menos una' : 'ninguna'} intersección entre segmentos.`;
+    return span;
+  }
+
+  showResultUI(result) {}
+  hideResultUI() {}
+
   _redrawAlgorithmInput() {
     const segments = [];
 

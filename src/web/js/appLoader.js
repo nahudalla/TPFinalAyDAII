@@ -3,7 +3,8 @@
     'download.js',
     'paper-core.js',
     'Sortable.js',
-    'threads.browser_v0.12.0.js'
+    'threads.browser_v0.12.0.js',
+    'semver.js'
   ];
 
   const message = document.getElementById('loadingMessage');

@@ -1,5 +1,8 @@
 import { activeContextChangedEvent } from '../../classes/Context.js';
 import log from '../../logger.js';
+import getActiveContext from '../../classes/Context.js';
+import algorithmResultUI from '../algorithmResult.js';
+import canModifyAppState from '../../appStateFreeze.js';
 
 const ALGORITHM_SELECT_QUERY = "#algorithmSelect";
 const EXECUTE_ALGORITHM_BTN_QUERY = "#executeAlgorBtn";
@@ -7,17 +10,24 @@ const EXECUTE_ALGORITHM_BTN_QUERY = "#executeAlgorBtn";
 const select = document.querySelector(ALGORITHM_SELECT_QUERY);
 const execute_btn = document.querySelector(EXECUTE_ALGORITHM_BTN_QUERY);
 
-while(select.firstChild) select.removeChild(select.firstChild);
-
 let lastContext = null;
 
 activeContextChangedEvent.subscribe(context => {
   if(lastContext) lastContext.algorithms.enabledAlgorithmsChangedEvent.unsubscribe(onAlgorChange);
 
-  context.algorithms.algorithms.forEach(algorithm => {
+  while(select.firstChild) select.removeChild(select.firstChild);
+
+  let prevSelected = null;
+  context.algorithms.listAll.forEach(algorithm => {
     const opt = document.createElement('option');
     opt.value = algorithm.id;
     opt.innerText = algorithm.name;
+
+    if(algorithm.enabled) {
+      if(prevSelected) prevSelected.removeAttribute('selected');
+      opt.selected = "selected";
+    }
+
     select.appendChild(opt);
   });
 
@@ -28,6 +38,7 @@ activeContextChangedEvent.subscribe(context => {
 function onAlgorChange(algor, enabled) {
   if(!enabled) return;
 
+
   if(select.value !== algor.id) select.value = algor.id;
 
   log(log.FLAGS.INFO_2, `Usando algoritmo: ${algor.name}`);
@@ -36,12 +47,25 @@ function onAlgorChange(algor, enabled) {
 select.addEventListener('change', ()=>{
   if(!lastContext) return;
 
-  lastContext.algorithms.get(select.value).enable();
-  lastContext.algorithms.enabledAlgorithms.forEach(algorithm => {
-    if(algorithm.id !== select.value) algorithm.disable();
-  })
+  if(canModifyAppState('cambiar el algoritmo activo')) {
+    lastContext.algorithms.disableAll();
+
+    lastContext.algorithms.get(select.value)
+      .enable();
+  } else {
+    select.value = lastContext.algorithms.enabledAlgorithms[0].id;
+  }
 });
 
 execute_btn.addEventListener('click', ()=>{
-  alert(select.value);
+  const ctx = getActiveContext();
+
+  if(ctx.pointsList.length === 0) {
+    alert('No hay puntos de entrada.');
+    return;
+  }
+
+  const runner = ctx.algorithms.enabledAlgorithms[0].run();
+
+  algorithmResultUI.showResult(runner);
 });

@@ -1,5 +1,6 @@
 import Point from "./Point.js";
 import Observable from "./Observable.js";
+import canModifyAppState from '../appStateFreeze.js';
 
 export default class PointsList {
   constructor(settings) {
@@ -18,6 +19,11 @@ export default class PointsList {
     this._redoHist = [];
 
     this._changedEvent.subscribe((...data) => {
+      Sentry.configureScope((scope) => {
+        scope.setExtra("points", this._orderedPoints);
+        scope.setExtra('undo', this._undoHist);
+        scope.setExtra('redo', this._redoHist);
+      });
       if(this._undoRedoInProgress) return;
       this._redoHist = [];
       this._undoHist.push(data);
@@ -29,41 +35,57 @@ export default class PointsList {
     this._reorderEvent.subscribe(this._changedEvent.emit.bind(this._changedEvent, 'reorder'));
   }
 
+  get _canModify() {
+    return canModifyAppState('modificar los puntos de entrada');
+  }
+
   get undoAvailable() {return this._undoHist.length !== 0;}
   get redoAvailable() {return this._redoHist.length !== 0;}
 
   undo() {
-    if(this._undoRedoInProgress || !this.undoAvailable) return;
+    if(!this._canModify) return false;
+
+    if(this._undoRedoInProgress || !this.undoAvailable) return false;
 
     this._undoRedoInProgress = true;
 
     const action = this._undoHist.pop();
     const [type, point, , wasBeforePoint] = action;
 
-    this._redoHist.push(action);
+    let res;
+    if(type === 'add') res = this.remove(point);
+    else if(type === 'remove') res = this.add(point);
+    else if(type === 'reorder') res = this.reorder(point, wasBeforePoint);
 
-    if(type === 'add') this.remove(point);
-    else if(type === 'remove') this.add(point);
-    else if(type === 'reorder') this.reorder(point, wasBeforePoint);
+    if(res) this._redoHist.push(action);
+    else this._undoHist.pop(action);
 
     this._undoRedoInProgress = false;
+
+    return res;
   }
 
   redo() {
-    if(this._undoRedoInProgress || !this.redoAvailable) return;
+    if(!this._canModify) return false;
+
+    if(this._undoRedoInProgress || !this.redoAvailable) return false;
 
     this._undoRedoInProgress = true;
 
     const action = this._redoHist.pop();
     const [type, point, beforePoint] = action;
 
-    this._undoHist.push(action);
+    let res;
+    if(type === 'add') res = this.add(point);
+    else if(type === 'remove') res = this.remove(point);
+    else if(type === 'reorder') res = this.reorder(point, beforePoint);
 
-    if(type === 'add') this.add(point);
-    else if(type === 'remove') this.remove(point);
-    else if(type === 'reorder') this.reorder(point, beforePoint);
+    if(res) this._undoHist.push(action);
+    else this._redoHist.push(action);
 
     this._undoRedoInProgress = false;
+
+    return res;
   }
 
   buildInt32CoordinatesArray() {
@@ -97,11 +119,13 @@ export default class PointsList {
   }
 
   reorder(point, beforePoint) {
+    if(!this._canModify) return false;
+
     const key = point.hashString;
 
     const oldIndex = this._points.get(key);
 
-    if(oldIndex !== 0 && !oldIndex) return;
+    if(oldIndex !== 0 && !oldIndex) return false;
 
     let wasBeforePoint = null;
     if(oldIndex < this._orderedPoints.length-2) {
@@ -121,7 +145,7 @@ export default class PointsList {
       const beforeKey = beforePoint.hashString;
       const newIndex = this._points.get(beforeKey);
 
-      if(newIndex !== 0 && !newIndex) return;
+      if(newIndex !== 0 && !newIndex) return false;
 
       this._points.set(key, newIndex);
       this._orderedPoints.splice(oldIndex, 2);
@@ -132,12 +156,17 @@ export default class PointsList {
     }
 
     this._reorderEvent.emit(point, beforePoint, wasBeforePoint);
+
+    return true;
   }
 
   add(point) {
+    if(!this._canModify) return false;
+
     if(Array.isArray(point)) {
-      point.forEach(p => this.add(p));
-      return;
+      let res = true;
+      point.forEach(p => {res = res && this.add(p);});
+      return res;
     }
 
     if(!(point instanceof Point)) {
@@ -146,15 +175,19 @@ export default class PointsList {
 
     const key = point.hashString;
 
-    if(this._points.has(key)) return;
+    if(this._points.has(key)) return false;
 
     this._points.set(key, this._orderedPoints.length);
     this._orderedPoints.push(point.x, point.y);
 
     this.addEvent.emit(point);
+
+    return true;
   }
 
   remove(point) {
+    if(!this._canModify) return false;
+
     if(!(point instanceof Point)) {
       throw new TypeError("Not an instance of Point");
     }
@@ -168,7 +201,11 @@ export default class PointsList {
       this._orderedPoints.splice(this._orderedPoints.length-2, 2);
 
       this.removeEvent.emit(point);
+
+      return true;
     }
+
+    return false;
   }
 
   has(point) {
@@ -176,6 +213,8 @@ export default class PointsList {
   }
 
   clear() {
+    if(!this._canModify) return false;
+    
     const points = this._orderedPoints;
     this._points = new Map();
     this._orderedPoints = [];
@@ -188,5 +227,7 @@ export default class PointsList {
       this.removeEvent.emit(new Point(points[i], points[i+1]))
     }
     this._undoRedoInProgress = false;
+
+    return true;
   }
 }

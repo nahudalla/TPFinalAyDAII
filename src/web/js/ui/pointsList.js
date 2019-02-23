@@ -3,6 +3,7 @@ import getActiveContext from '../classes/Context.js';
 import Point from '../classes/Point.js';
 
 const container = document.getElementById('pointsList');
+const header = document.getElementById('pointsHeader');
 
 activeContextChangedEvent.subscribe(context => {
   while(container.firstChild) container.removeChild(container.firstChild);
@@ -70,9 +71,13 @@ const sortable = new Sortable(container, {
       ? new Point(parseInt(nextElem.dataset.x), parseInt(nextElem.dataset.y))
       : undefined;
 
-    getActiveContext().pointsList.reorder(
+    if(!getActiveContext().pointsList.reorder(
       userReorderPoint, userReorderBeforePoint
-    );
+    )) {
+      const before = container.childNodes[evt.oldIndex];
+      container.removeChild(elem);
+      container.insertBefore(elem, before);
+    }
   }
 });
 
@@ -111,12 +116,19 @@ function onDeactivate(context) {
   while(container.firstChild) container.removeChild(container.firstChild);
 }
 
+function updateHeaderTitle() {
+  const cant = getActiveContext().pointsList.length;
+  header.title = `${cant} punto${cant !== 1 ? 's' : ''}`;
+}
+
 function addPoint(point) {
+  updateHeaderTitle();
   const elem = generateElement(point);
   container.appendChild(elem);
 }
 
 function removePoint(point) {
+  updateHeaderTitle();
   const elem = container.querySelector(`[data-x='${point.x}'][data-y='${point.y}']`);
   getActiveContext().stage.interactive.removeObject(point);
   container.removeChild(elem);

@@ -2,7 +2,7 @@ import {logger, FLAGS} from '../logger.js'
 
 const STATUS_BAR_SELECTOR = ".statusBar";
 const STATUS_SELECTOR = ".statusBar > span";
-const LOG_SELECTOR = ".statusBar > div";
+const LOG_SELECTOR = ".statusBar > div.log";
 
 const MAX_LOG_ELEMS = 150;
 
@@ -13,7 +13,7 @@ const log = [];
 
 container.addEventListener('mouseenter', e => scrollDown(e.target));
 
-logger.addListener(FLAGS.ALL, (message, flags) => {
+logger.addListener(FLAGS.ALL, (message, flags, ...data) => {
   const date = new Date();
 
   let msg = date.toLocaleString(undefined, {
@@ -33,13 +33,15 @@ logger.addListener(FLAGS.ALL, (message, flags) => {
 
   msg += message;
 
-  setMessage(pre, message);
+  if((flags & FLAGS.INFO_4) === 0 && (flags & FLAGS.INFO_5) === 0) {
+    setMessage(pre, message);
+  }
 
   if((flags & (FLAGS.CRITICAL | FLAGS.ERROR)) !== 0) {
-    console.error(msg);
+    console.error(msg, ...data);
     alert(msg);
   } else {
-    console.log(msg);
+    console.log(msg, ...data);
   }
 });
 

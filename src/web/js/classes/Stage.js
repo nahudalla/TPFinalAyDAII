@@ -58,7 +58,8 @@ const DEFAULT_STAGE_SETTINGS = {
   },
   point_selected_style: {
     fillColor: '#FFA700',
-    radius: 10
+    strokeColor: '#000000',
+    strokeWidth: .5
   }
 };
 

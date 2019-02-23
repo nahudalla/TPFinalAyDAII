@@ -12,7 +12,15 @@ export default class Algorithm {
     this._changedEvt = new Observable();
     this._inputDrawRemover = null;
     this._inputDrawEnabled = false;
+
+    this._runCache = null;
+
+    context.pointsList.changedEvent.subscribe(()=>{
+      this._runCache = null;
+    });
   }
+
+  get context() { return this._context; }
 
   get enabledStatusChangedEvent() { return this._changedEvt; }
 
@@ -48,6 +56,14 @@ export default class Algorithm {
   }
   _redrawAlgorithmInput() {throw new Error('Abstract method not implemented.');}
 
-  // TODO: cache result until pointsList change
-  run() { return new AlgorithmRunner([this], this._context.pointsList.buildInt32CoordinatesArray()); }
+  isValidResult(result) {throw new Error('Abstract method not implemented.');}
+  generateResultMessage(result) {throw new Error('Abstract method not implemented.');}
+  showResultUI(result) {throw new Error('Abstract method not implemented.');}
+  hideResultUI() {throw new Error('Abstract method not implemented.');}
+
+  run() {
+    if(this._runCache && !this._runCache.isAborted) return this._runCache;
+
+    return this._runCache = new AlgorithmRunner([this], this._context.pointsList.buildInt32CoordinatesArray());
+  }
 }

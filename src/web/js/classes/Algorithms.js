@@ -40,7 +40,7 @@ export default class Algorithms {
   get closestPairOfPoints() { return this._closestPairOfPoints; }
   get anySegmentsIntersect() { return this._anySegmentsIntersect; }
 
-  get algorithms() {
+  get listAll() {
     return [
       this._grahamScan,
       this._jarvisMarch,
@@ -54,22 +54,16 @@ export default class Algorithms {
   }
 
   get enabledAlgorithms() {
-    const enabled = [];
-
-    this.algorithms.forEach(algorithm => {
-      if(algorithm.enabled) enabled.push(algorithm);
-    });
-
-    return enabled;
+    return this.listAll.filter(algor => algor.enabled);
   }
 
   disableAll() {
-    this.algorithms.forEach(algorithm => algorithm.disable());
+    this.listAll.forEach(algorithm => algorithm.disable());
   }
 
   parallelRun() {
     const runners = [];
-    this.algorithms.forEach(algor => {
+    this.listAll.forEach(algor => {
       if(algor.enabled) {
         runners.push(algor.run());
       }

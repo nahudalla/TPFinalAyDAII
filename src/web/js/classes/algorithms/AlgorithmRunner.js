@@ -13,6 +13,8 @@ export default class AlgorithmRunner {
     if(!Array.isArray(algorithms)) throw new TypeError('AlgorithmRunner: algorithms must be an array.');
     if(!(coordinatesArray instanceof Int32Array)) throw new TypeError('AlgorithmRunner: coordinatesArray must be of type Int32Array');
 
+    if(coordinatesArray.length === 0) throw new Error('Empty coordinates array!');
+
     this._algorithms = new Map();
     algorithms.forEach(algorithm => {
       this._algorithms.set(algorithm.id, algorithm);
@@ -21,6 +23,7 @@ export default class AlgorithmRunner {
     this._progressEvent = new Observable();
     this._doneEvent = new Observable();
     this._errorEvent = new Observable();
+    this._abortEvent = new Observable();
 
     this._result = null;
     this._error = null;
@@ -29,9 +32,23 @@ export default class AlgorithmRunner {
       this._progressEvent.removeAll();
       this._doneEvent.removeAll();
       this._errorEvent.removeAll();
+      this._abortEvent.removeAll();
     };
 
-    pool
+    this._initializing = true;
+    this._startTime = performance.now();
+    this._endTime = null;
+
+    const onError = (err) => {
+      this._initializing = false;
+      this._error = err;
+      this._job = null;
+      this._endTime = performance.now();
+      this._errorEvent.emit(err);
+      removeAllListeners();
+    };
+
+    this._job = pool
       .send({
         algorithms: algorithms.map(algorithm=>algorithm.id),
         location: window.location.href,
@@ -41,15 +58,18 @@ export default class AlgorithmRunner {
         }
       }, [coordinatesArray.buffer])
       .on('progress', (data) => {
+        this._initializing = false;
         if(data.algorithm) data.algorithm = this._algorithms.get(data.algorithm);
         this._progressEvent.emit(data);
       })
-      .once('error', (err) => {
-        this._error = err;
-        this._errorEvent.emit(err);
-        removeAllListeners();
-      })
+      .once('error', onError)
       .once('done', (response, ...args) => {
+        if(response.error) {
+          onError(response.error);
+          return;
+        }
+
+        this._initializing = false;
         const res = this._result = new Map();
         this._algorithms.forEach((algorithm, key) => {
           let result;
@@ -60,21 +80,38 @@ export default class AlgorithmRunner {
               result.push(new Point(i32Array[i], i32Array[i+1]));
             }
           } else result = response[key];
-          res.set(key, {algorithm, result});
+          res.set(key, result);
         });
+        this._job = null;
+        this._endTime = performance.now();
         this._doneEvent.emit(res, ...args);
+        removeAllListeners();
+      })
+      .once('abort', ()=>{
+        this._initializing = false;
+        this._job = null;
+        this._endTime = performance.now();
+        this._abortEvent.emit();
         removeAllListeners();
       });
   }
 
   get PROGRESS_EVENT_IDS() {return worker();}
 
-  get algorithms() { return this._algorithms.values(); }
+  abort() { if(this._job) this._job.abort(); }
+
+  get algorithms() { return Array.from(this._algorithms.values()); }
 
   get progressEvent() { return this._progressEvent; }
   get doneEvent() { return this._doneEvent; }
   get errorEvent() { return this._errorEvent; }
+  get abortEvent() { return this._abortEvent; }
 
+  get executionTime() { return (this._endTime || performance.now()) - this._startTime; }
+
+  get isInitializing() { return this._initializing; }
+  get isExecuting() { return !!this._job; }
+  get isAborted() {return !this._job && !this._result && !this._error;}
   get result() { return this._result; }
   get error() { return this._error; }
 }
@@ -94,6 +131,10 @@ function worker(input, done, progress) {
     return PROGRESS_IDS;
   }
 
+  self.NativeError = function(message) {
+      this.message = message;
+  };
+
   progress({progressID: PROGRESS_IDS.JOB_STARTED});
 
   const onModuleReady = () => {
@@ -102,12 +143,12 @@ function worker(input, done, progress) {
     const response = {};
     const transferableObjects = [];
 
-    progress({progressID: PROGRESS_IDS.PREPARING_DATA});
-    const heapPtr = arrayToHeap(input.coordinatesArray, this.wasm_module);
-
     let err;
 
     try {
+      progress({progressID: PROGRESS_IDS.PREPARING_DATA});
+      const heapPtr = arrayToHeap(input.coordinatesArray, this.wasm_module);
+
       this.wasm_module.set_raw_input(heapPtr, input.coordinatesArray.length);
 
       delete input.coordinatesArray;
@@ -117,20 +158,26 @@ function worker(input, done, progress) {
       ) {
         const res = this.wasm_module.prepare_list_of_points_input();
 
-        if (res instanceof Error) err = res;
+        if (res instanceof Error || res instanceof self.NativeError) err = res;
       }
 
       if(input.algorithms.includes('closest_points')) {
         const res = this.wasm_module.prepare_array_of_points_input();
 
-        if (res instanceof Error) err = res;
+        if (res instanceof Error || res instanceof self.NativeError) err = res;
+      }
+
+      if(input.algorithms.includes('any_segments_intersect')) {
+        const res = this.wasm_module.prepare_list_of_segments_input();
+
+        if (res instanceof Error || res instanceof self.NativeError) err = res;
       }
 
       if(!err) {
         input.algorithms.forEach(algorithm => {
           progress({ progressID: PROGRESS_IDS.EXECUTING_ALGORITHM, algorithm });
 
-          const res = this.wasm_module[`run_${algorithm}`]();
+          let res = this.wasm_module[`run_${algorithm}`]();
 
           progress({progressID: PROGRESS_IDS.COLLECTING_RESULTS, algorithm });
 
@@ -140,10 +187,15 @@ function worker(input, done, progress) {
     }catch (e) {
       err = e;
     } finally {
-      this.wasm_module._free(heapPtr);
+      try {
+        this.wasm_module._free(heapPtr);
+      } catch (e) {}
     }
 
-    if(err) throw err;
+    if(err) {
+      console.error(err);
+      response.error = err;
+    }
 
     if(transferableObjects.length > 0) {
       done.transfer(response, transferableObjects);
@@ -178,7 +230,7 @@ function worker(input, done, progress) {
   }
 
   function parseOutput(output, transferableObjects, module) {
-    if(output instanceof Error) throw output;
+    if(output instanceof Error || output instanceof self.NativeError) throw output;
 
     if(typeof output !== 'object') return output;
 

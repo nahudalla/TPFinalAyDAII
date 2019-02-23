@@ -2,7 +2,7 @@
 <html lang="es">
   <head>
     <meta charset="utf-8">
-    <title></title>
+    <title>TP Final Análisis y Diseño de Algoritmos II</title>
     <style type="text/css">
       .loadingMessage {
         display: table;
@@ -52,20 +52,25 @@
       <span>Cargando...<br><span id="loadingMessage">Preparando carga...</span></span>
     </div>
     <div class="canvasContainer">
-      <div class="algorithmResultToolsContainer">
+      <div id="algorithmResultToolsContainer">
         <div class="top">
           <div class="title">Resultado de ejecución</div>
           <div class="material-icons close" id="hideResultToolsBtn" title="Cerrar resultados de ejecución">close</div>
         </div>
         <div id="algorithmResultText"></div>
-        <button id="makeResultInteractive" class="hidden">
+        <button id="makeResultInteractiveBtn" class="hidden">
           Habilitar reproducción paso a paso
         </button>
-        <div class="executingAlgorithmMsgContainer">
+        <div id="executingAlgorithmMsgContainer" class="hidden">
           <span class="material-icons">sync</span>
-          <span id="executingAlgorithmMsg">Ejecutando algoritmo...</span>
+          <span id="executingAlgorithmMsg"></span>
         </div>
-        <div class="controls hidden">
+        <div>
+          <button id="cancelAlgorithmExecutionBtn" class="abort hidden">
+            CANCELAR EJECUCIÓN
+          </button>
+        </div>
+        <div id="algorithmInteractiveResultControls" class="controls hidden">
           <ul>
             <li class="material-icons" title="Ir al inicio (Ctrl + Alt + Flecha izquierda)" id="goToStartResultBtn">skip_previous</li>
             <li class="material-icons" title="Retroceder (Alt + Flecha izquierda)" id="goToPrevResultBtn">fast_rewind</li>
@@ -118,21 +123,36 @@
           <li class="material-icons disabled" title="Rehacer (Ctrl + Shift + Z)" id="redoBtn">redo</li>
         </ul>
       </div>
-      <div class="header">Puntos</div>
+      <div class="header" id="pointsHeader">Puntos</div>
       <div class="pointsList">
         <ul id="pointsList"></ul>
       </div>
       <div class="footer">
-        Trabajo para final de Análisis y Diseño de Algoritmos II<br>
+        Trabajo para final de Análisis y Diseño de Algoritmos I y II<br>
         Universidad Nacional del Centro de la Provincia de Buenos Aires, Argentina<br>
         Desarrollado por Nahuel Dallacamina Ortea<br>
-        Noviembre/Diciembre 2018
+        Noviembre 2018 - Febrero 2019
       </div>
     </div>
+    <div id="updateAvailableMessage">
+      <div class="main">
+        <span class="material-icons">cloud_download</span>
+        <span>Nueva versión disponible</span>
+      </div>
+      <div class="download">
+        Click para descargar
+        <div id="newUpdateDownloadLink" data-link=""></div>
+      </div>
+      <button id="updateChangelogBtn">Ver cambios</button>
+    </div>
     <div class="statusBar">
-      <div></div>
+      <div class="log"></div>
       <span></span>
     </div>
+    <script src="third_party/Sentry.4.6.3.bundle.min.js" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+      Sentry.init({ dsn: 'https://ced1d627906e454fa8f437392884f1c6@sentry.io/1400004', environment:'development' });
+    </script>
     <script type="text/javascript" src="js/appLoader.js"></script>
   </body>
 </html>

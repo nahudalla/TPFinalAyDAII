@@ -34,7 +34,7 @@ export default class Point extends GeometricObject {
   }
 
   selectStyle(styles) {
-    return styles['Point'];
+    return styles[this.hashString] || styles['Point'];
   }
 
   equals(point) {

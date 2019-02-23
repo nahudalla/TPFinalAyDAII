@@ -27,10 +27,10 @@ namespace algor {
         }
 
         explicit GrahamScan(List<Point> points) {
-            // PRECONDICION: La lista tiene que tener al menos tres puntos que no sean colineales
             typedef Comparator<Point>::ComparatorFunction CompFn;
             typedef Comparator<Point>::Result CompRes;
 
+            // PRECONDICION: La lista tiene que tener al menos tres puntos que no sean colineales
             if(points.length() < 3) return;
 
             {
@@ -65,6 +65,12 @@ namespace algor {
 
                 return Vector(p0, *it).isColinear(Vector(p0, *next));
             });
+
+            // PRECONDICION: La lista tiene que tener al menos tres puntos que no sean colineales (contando p0)
+            if(points.length() < 2) {
+                this->p0 = std::nullopt;
+                return;
+            }
 
             this->sortedPoints = points;
         }

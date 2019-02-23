@@ -56,20 +56,20 @@ namespace algor {
             auto it = segments.cbegin();
             auto end = segments.cend();
 
-            this->endpoints = List<Endpoint>();
+            auto endpoints = List<Endpoint>();
 
             for(; it != end; ++it) {
                 const Segment & segment = *it;
 
-                if(segment.getFrom().getX() == segment.getTo().getX()) continue; // PRECONDICIÓN: no puede haber segmentos verticales
+                // PRECONDICIÓN: no puede haber segmentos verticales
+                if(segment.getFrom().getX() == segment.getTo().getX()) return;
 
-                endpoints->add(Endpoint{segment, LEFT});
-                endpoints->add(Endpoint{segment, RIGHT});
+                endpoints.add(Endpoint{segment, LEFT});
+                endpoints.add(Endpoint{segment, RIGHT});
             }
 
-            if(this->endpoints->isEmpty()) {
-                this->endpoints.reset();
-            } else {
+            if(!endpoints.isEmpty()) {
+                this->endpoints = std::move(endpoints);
                 this->endpoints->sort(AnySegmentsIntersect::getComparator());
             }
         }

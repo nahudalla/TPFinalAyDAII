@@ -3,6 +3,7 @@
   "productName": "tpfinalaydaii",
   "version": "1.0.0",
   "description": "Herramienta para usar algoritmos geométricos básicos.",
+  "repository": "https://github.com/nahudalla/TPFinalAyDAII.git",
   "scripts": {
     "run": "electron web-build-release",
     "build-and-run": "npm run web-build-release && npm run run",
@@ -10,16 +11,25 @@
     "web-build-debug": "rsync -ruthq --delete --progress --exclude=wasm/ src/web/ web-build-debug/",
     "web-build-release": "npm run generate-electron-package-config && rsync -ruthq --delete --progress --exclude=wasm/ --exclude=package.json src/web/ web-build-release/",
     "serve-debug": "http-server -c-1 web-build-debug",
-    "serve-release": "http-server -c-1 web-build-release"
+    "serve-release": "http-server -c-1 web-build-release",
+    "pre-package-release": "npm run web-build-release && cd ./web-build-release && npm install && cd ..",
+    "package-release": "npm run pre-package-release && electron-packager --arch x64 ./web-build-release/ --out ./packaged --platform darwin,linux,win32",
+    "build-distributables": "node generateDistributables.js",
+    "make-full-release": "npm run package-release && npm run build-distributables"
   },
   "author": "Nahuel Dallacamina",
   "license": "MIT",
   "config": {},
-  "dependencies": {},
+  "dependencies": {
+    "finalhandler": "^1.1.1",
+    "serve-static": "^1.13.2"
+  },
   "devDependencies": {
     "electron": "^3.0.10",
-    "electron-packager": "^12.2.0",
-    "http-server": "^0.11.1"
+    "electron-packager": "^13.1.0",
+    "http-server": "^0.11.1",
+    "rimraf": "^2.6.3",
+    "zip-a-folder": "0.0.7"
   },
   "electronPackageJSONGenerator": {
     "exclude": [

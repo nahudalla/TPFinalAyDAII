@@ -10,6 +10,7 @@ namespace wasm_bindings {
     emscripten::val generateRawInputNotSetError();
     emscripten::val generateInvalidProgressCallback();
     emscripten::val generateListOfPointsInputNotSetError();
+    emscripten::val generateListOfSegmentsInputNotSetError();
     emscripten::val generateArrayOfPointsInputNotSetError();
     emscripten::val generateInvalidInputError();
 }

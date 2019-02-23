@@ -8,7 +8,7 @@ using namespace emscripten;
 using namespace wasm_bindings;
 
 val wasm_bindings::generateError(std::string message) {
-    return val::global("Error").new_(val(std::move(message)));
+    return val::global("NativeError").new_(val(std::move(message)));
 }
 
 val wasm_bindings::generateInvalidConstantsError() {
@@ -29,6 +29,10 @@ val wasm_bindings::generateInvalidProgressCallback() {
 
 emscripten::val wasm_bindings::generateListOfPointsInputNotSetError() {
     return generateError("List of points input not set.");
+}
+
+emscripten::val wasm_bindings::generateListOfSegmentsInputNotSetError() {
+    return generateError("List of segments input not set.");
 }
 
 emscripten::val wasm_bindings::generateArrayOfPointsInputNotSetError() {

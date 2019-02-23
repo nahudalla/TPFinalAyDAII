@@ -21,6 +21,7 @@ if(USE_EMSCRIPTEN_TOOLCHAIN)
                 " -s EXIT_RUNTIME=0"
                 " -s FILESYSTEM=0"
                 " -s EXPORT_NAME=WASMModule"
+                " -s ALLOW_MEMORY_GROWTH=1"
                 " -s \"EXTRA_EXPORTED_RUNTIME_METHODS=['ccall']\""
         )
     endif()
@@ -75,7 +76,7 @@ set(WASM_SOURCE_FILES
         src/native/cpp/wasm_bindings/utils.cpp
         src/native/cpp/wasm_bindings/jarvis_march.cpp
         src/native/cpp/wasm_bindings/closest_points.cpp
-        src/native/cpp/wasm.cpp
+        src/native/cpp/wasm_bindings/any_segments_intersect.cpp
 )
 
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Emscripten")

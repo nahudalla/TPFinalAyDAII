@@ -1,8 +1,8 @@
 import GeometricObject from './GeometricObject.js';
 
 export default class Arrow extends GeometricObject {
-  constructor(from, to) {
-    super();
+  constructor(from, to, name) {
+    super(name);
 
     this._from = from;
     this._to = to;
@@ -16,7 +16,7 @@ export default class Arrow extends GeometricObject {
     return this._to;
   }
 
-  get hashString() {
+  get _hashString() {
     return `${this._from.hashString}_${this._to.hashString}_Arrow`;
   }
 

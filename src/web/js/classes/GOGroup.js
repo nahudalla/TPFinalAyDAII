@@ -1,29 +1,29 @@
 import GeometricObject from './GeometricObject.js';
 
 export default class GOGroup extends GeometricObject {
-  constructor(elements) {
-    super();
+  constructor(elements, name) {
+    super(name);
 
     if(!Array.isArray(elements) || !elements.length) {
       throw new TypeError('Parameter "elements" must be an Array of GeometricObject.');
     }
 
-    this._hashString = "";
+    this.__hashString = "";
 
     elements.forEach(elem => {
       if(!(elem instanceof GeometricObject)) {
         throw new TypeError('Parameter "elements" must be an Array of GeometricObject.');
       }
-      this._hashString += elem.hashString + '_';
+      this.__hashString += elem.hashString + '_';
     });
 
-    this._hashString += 'GOGroup';
+    this.__hashString += 'GOGroup';
 
     this._elems = elements;
   }
 
-  get hashString() {
-    return this._hashString;
+  get _hashString() {
+    return this.__hashString;
   }
 
   toPaperObject(stage, scale, applyStyles) {

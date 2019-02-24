@@ -10,6 +10,7 @@ export default class PointsList {
     this._addEvent = new Observable();
     this._removeEvent = new Observable();
     this._reorderEvent = new Observable();
+    this._replaceEvent = new Observable();
 
     this._changedEvent = new Observable();
 
@@ -33,6 +34,7 @@ export default class PointsList {
     this._addEvent.subscribe(this._changedEvent.emit.bind(this._changedEvent, 'add'));
     this._removeEvent.subscribe(this._changedEvent.emit.bind(this._changedEvent, 'remove'));
     this._reorderEvent.subscribe(this._changedEvent.emit.bind(this._changedEvent, 'reorder'));
+    this._replaceEvent.subscribe(this._changedEvent.emit.bind(this._changedEvent, 'replace'));
   }
 
   get _canModify() {
@@ -50,12 +52,13 @@ export default class PointsList {
     this._undoRedoInProgress = true;
 
     const action = this._undoHist.pop();
-    const [type, point, , wasBeforePoint] = action;
+    const [type, point, oldPoint, wasBeforePoint] = action;
 
     let res;
     if(type === 'add') res = this.remove(point);
     else if(type === 'remove') res = this.add(point);
     else if(type === 'reorder') res = this.reorder(point, wasBeforePoint);
+    else if(type === 'replace') res = this.replace(oldPoint, point);
 
     if(res) this._redoHist.push(action);
     else this._undoHist.pop(action);
@@ -79,6 +82,7 @@ export default class PointsList {
     if(type === 'add') res = this.add(point);
     else if(type === 'remove') res = this.remove(point);
     else if(type === 'reorder') res = this.reorder(point, beforePoint);
+    else if(type === 'replace') res = this.replace(point, beforePoint);
 
     if(res) this._undoHist.push(action);
     else this._redoHist.push(action);
@@ -104,6 +108,10 @@ export default class PointsList {
     return this._reorderEvent;
   }
 
+  get replaceEvent() {
+    return this._replaceEvent;
+  }
+
   get changedEvent() {
     return this._changedEvent;
   }
@@ -116,6 +124,22 @@ export default class PointsList {
 
   get length() {
     return this._points.size;
+  }
+
+  replace(newPoint, oldPoint) {
+    if(newPoint.equals(oldPoint) || !this._canModify) return false;
+
+    const index = this._points.get(oldPoint.hashString);
+    if((index !== 0 && !index) || this._points.has(newPoint.hashString)) {
+      return false;
+    }
+
+    this._orderedPoints[index] = newPoint.x;
+    this._orderedPoints[index + 1] = newPoint.y;
+    this._points.delete(oldPoint.hashString);
+    this._points.set(newPoint.hashString, index);
+
+    this._replaceEvent.emit(newPoint, oldPoint);
   }
 
   reorder(point, beforePoint) {

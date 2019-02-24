@@ -5,6 +5,7 @@ const ZOOM_IN_TOOL_BTN_QUERY = "#zoomInToolBtn";
 const ZOOM_OUT_TOOL_BTN_QUERY = "#zoomOutToolBtn";
 const ADD_POINT_TOOL_BTN_QUERY = "#addPointBtn";
 const REMOVE_POINT_TOOL_BTN_QUERY = "#removePointBtn";
+const REPLACE_POINT_TOOL_BTN_QUERY = "#movePointBtn";
 
 const TOOL_SELECTED_CLASSNAME = 'selected';
 
@@ -15,6 +16,7 @@ activeContextChangedEvent.subscribe(context => {
   setupTool(context, stage.tools.zoomOutTool, ZOOM_OUT_TOOL_BTN_QUERY);
   setupTool(context, stage.tools.addPointTool, ADD_POINT_TOOL_BTN_QUERY);
   setupTool(context, stage.tools.removePointTool, REMOVE_POINT_TOOL_BTN_QUERY);
+  setupTool(context, stage.tools.replacePointTool, REPLACE_POINT_TOOL_BTN_QUERY);
 });
 
 function setupTool(context, tool, query) {

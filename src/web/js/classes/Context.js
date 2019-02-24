@@ -40,6 +40,11 @@ export class Context {
       this._stage.zoomed.removeObject(point);
     });
 
+    this._pointsList.replaceEvent.subscribe((newPoint, oldPoint) => {
+      this._stage.zoomed.removeObject(oldPoint);
+      this._stage.zoomed.addObject(newPoint);
+    });
+
     this.activate();
     this._algorithms.grahamScan.enable();
   }

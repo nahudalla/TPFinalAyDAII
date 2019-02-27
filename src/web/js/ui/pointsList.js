@@ -11,6 +11,7 @@ activeContextChangedEvent.subscribe(context => {
   context.pointsList.addEvent.subscribe(addPoint);
   context.pointsList.removeEvent.subscribe(removePoint);
   context.pointsList.reorderEvent.subscribe(onReorder);
+  context.pointsList.replaceEvent.subscribe(onReplace);
   context.deactivateEvent.subscribe(onDeactivate);
 
   context.pointsList.forEach(addPoint);
@@ -81,6 +82,19 @@ const sortable = new Sortable(container, {
   }
 });
 
+function onReplace(point, oldPoint) {
+  if(!point || !(point instanceof Point) || !oldPoint || !(oldPoint instanceof Point)) return;
+
+  const oldElem = container.querySelector(`[data-x='${oldPoint.x}'][data-y='${oldPoint.y}']`);
+
+  if(!oldElem) return;
+
+  const newElem = generateElement(point);
+
+  container.insertBefore(newElem, oldElem);
+  container.removeChild(oldElem);
+}
+
 function onReorder(point, beforePoint) {
   if(!point || !(point instanceof Point) || (beforePoint && !(beforePoint instanceof Point))) return;
 
@@ -112,6 +126,8 @@ function onReorder(point, beforePoint) {
 function onDeactivate(context) {
   context.pointsList.addEvent.unsubscribe(addPoint);
   context.pointsList.removeEvent.unsubscribe(removePoint);
+  context.pointsList.reorderEvent.unsubscribe(onReorder);
+  context.pointsList.replaceEvent.unsubscribe(onReplace);
   context.deactivateEvent.unsubscribe(onDeactivate);
   while(container.firstChild) container.removeChild(container.firstChild);
 }

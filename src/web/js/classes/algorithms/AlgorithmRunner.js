@@ -79,6 +79,10 @@ export default class AlgorithmRunner {
             for(let i = 0; i < i32Array.length-1; i += 2) {
               result.push(new Point(i32Array[i], i32Array[i+1]));
             }
+
+            delete response[key].buffer;
+
+            Object.assign(result, response[key])
           } else result = response[key];
           res.set(key, result);
         });
@@ -161,7 +165,11 @@ function worker(input, done, progress) {
         if (res instanceof Error || res instanceof self.NativeError) err = res;
       }
 
-      if(input.algorithms.includes('closest_points')) {
+      if(input.algorithms.includes('closest_points')
+         || input.algorithms.includes('art_gallery_problem_on_simple_polygon')
+         || input.algorithms.includes('partition_simple_polygon_to_monotone')
+         || input.algorithms.includes('triangulate_simple_polygon')
+      ) {
         const res = this.wasm_module.prepare_array_of_points_input();
 
         if (res instanceof Error || res instanceof self.NativeError) err = res;
@@ -232,7 +240,7 @@ function worker(input, done, progress) {
   function parseOutput(output, transferableObjects, module) {
     if(output instanceof Error || output instanceof self.NativeError) throw output;
 
-    if(typeof output !== 'object') return output;
+    if(typeof output !== 'object' || output === null) return output;
 
     if(output.data && output.length) {
       const copy = Int32Array.from(
@@ -243,7 +251,11 @@ function worker(input, done, progress) {
 
       transferableObjects.push(copy.buffer);
 
+      delete output.data;
+      delete output.length;
+
       return {
+        ...output,
         buffer: copy.buffer
       };
     }

@@ -2,6 +2,7 @@ import PanTool from './tools/PanTool.js';
 import { ZoomInTool, ZoomOutTool } from './tools/ZoomTool.js';
 import AddPointTool from './tools/AddPointTool.js';
 import RemovePointTool from './tools/RemovePointTool.js';
+import ReplacePointTool from './tools/ReplacePointTool.js';
 
 export default class StageTools {
   constructor(stage, context) {
@@ -10,6 +11,7 @@ export default class StageTools {
     this._zoomOutTool = setupTool.call(this, ZoomOutTool, stage);
     this._addPointTool = setupTool.call(this, AddPointTool, stage);
     this._removePointTool = setupTool.call(this, RemovePointTool, stage);
+    this._replacePointTool = setupTool.call(this, ReplacePointTool, stage);
 
     this._stage = stage;
 
@@ -17,12 +19,14 @@ export default class StageTools {
 
     this._panTool.activate();
 
-    this._previousTool = null;
-    this._lastKeyCodePressed = null;
-    this._keydownListener = evt => {
+    const previousTools = [];
+    const lastKeyCodesPressed = [];
+    const keydownListener = evt => {
       let newTool;
 
-      if(evt.ctrlKey) {
+      if(evt.ctrlKey && evt.shiftKey) {
+        newTool = this._replacePointTool;
+      } else if(evt.ctrlKey) {
         newTool = this._panTool;
       } else if(evt.shiftKey) {
         newTool = this._addPointTool;
@@ -32,29 +36,34 @@ export default class StageTools {
 
       if(newTool.isActive) return;
 
-      if(!this._previousTool) {
-        this._previousTool = this._activeTool;
-      }
-
-      this._lastKeyCodePressed = evt.code;
+      previousTools.push(this._activeTool);
+      lastKeyCodesPressed.push(evt.code);
 
       newTool.activate();
     };
-    this._keyupListener = evt => {
-      if(evt.code === this._lastKeyCodePressed) {
-        this._previousTool.activate();
-        this._previousTool = null;
-        this._lastKeyCodePressed = null;
+    const keyupListener = evt => {
+      if(!evt.ctrlKey && !evt.shiftKey && !evt.altKey) {
+        let last = null;
+        while(previousTools.length) {
+          last = previousTools.pop();
+        }
+        if(last) last.activate();
+        while(lastKeyCodesPressed.length) lastKeyCodesPressed.pop();
+      }
+
+      if(lastKeyCodesPressed.length > 0 && evt.code === lastKeyCodesPressed[lastKeyCodesPressed.length-1]) {
+        lastKeyCodesPressed.pop();
+        previousTools.pop().activate();
       }
     };
 
     context.activateEvent.subscribe(()=>{
-      window.addEventListener('keydown', this._keydownListener);
-      window.addEventListener('keyup', this._keyupListener);
+      window.addEventListener('keydown', keydownListener);
+      window.addEventListener('keyup', keyupListener);
     });
     context.deactivateEvent.subscribe(()=>{
-      window.removeEventListener('keydown', this._keydownListener);
-      window.removeEventListener('keyup', this._keyupListener);
+      window.removeEventListener('keydown', keydownListener);
+      window.removeEventListener('keyup', keyupListener);
     });
   }
 
@@ -63,6 +72,7 @@ export default class StageTools {
   get zoomOutTool() { return this._zoomOutTool; }
   get addPointTool() { return this._addPointTool; }
   get removePointTool() { return this._removePointTool; }
+  get replacePointTool() { return this._replacePointTool; }
   get activeTool() { return this._activeTool; }
 }
 

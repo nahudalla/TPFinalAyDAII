@@ -5,6 +5,7 @@
 
 #include <algor/RBTree_impl/Color.hpp>
 #include <algor/Comparator.hpp>
+#include <algor/UnaryComparator.hpp>
 
 namespace algor::__detail_RBTree {
     template <typename> class Nil;
@@ -233,11 +234,34 @@ namespace algor::__detail_RBTree {
 
         bool isNil() const { return this == Nil::get(); }
 
+        const Node * findMaxLessThan(UnaryComparator<T> const& comparator) const {
+            typedef typename UnaryComparator<T>::Result Result;
+
+            const Node * curr = this, * ans = Nil::get();
+
+            while (!curr->isNil()) {
+                auto cmpRes = comparator.compare(*(curr->getData()));
+                if (cmpRes == Result::LESS) {
+                    ans = curr;
+                    curr = curr->right;
+                } else curr = curr->left;
+            }
+
+            return ans;
+        }
+
+        Node * findMaxLessThan(UnaryComparator<T> const& comparator) {
+            return this->to_const()->findMaxLessThan(comparator)->to_non_const();
+        }
+
         const Node * search(T const& data, const Comparator<T> & comparator) const {
             const Node * current = this;
             const T * current_data;
 
-            while (!current->isNil() && !(*(current_data = current->getData()) == data)) {
+            auto isNil = current->isNil();
+            auto cmpRes = !isNil && comparator.compare(*(current_data = current->getData()), data) != EQUAL;
+
+            while (!current->isNil() && comparator.compare(*(current_data = current->getData()), data) != EQUAL) {
                 if(comparator.compare(*current_data, data) == LESS) current = current->right;
                 else current = current->left;
             }

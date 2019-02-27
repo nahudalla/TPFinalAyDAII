@@ -1,7 +1,7 @@
 {
   "name": "tpfinalaydaii",
   "productName": "tpfinalaydaii",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Herramienta para usar algoritmos geométricos básicos.",
   "repository": "https://github.com/nahudalla/TPFinalAyDAII.git",
   "scripts": {
@@ -12,7 +12,7 @@
     "web-build-release": "npm run generate-electron-package-config && rsync -ruthq --delete --progress --exclude=wasm/ --exclude=package.json src/web/ web-build-release/",
     "serve-debug": "http-server -c-1 web-build-debug",
     "serve-release": "http-server -c-1 web-build-release",
-    "pre-package-release": "npm run web-build-release && cd ./web-build-release && npm install && cd ..",
+    "pre-package-release": "npm run web-build-release && cd ./web-build-release && rm -rf node_modules && npm install && cd ..",
     "package-release": "npm run pre-package-release && electron-packager --overwrite --arch x64 ./web-build-release/ --out ./packaged --platform darwin,linux,win32",
     "build-distributables": "node generateDistributables.js",
     "make-full-release": "npm run package-release && npm run build-distributables"

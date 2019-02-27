@@ -12,7 +12,9 @@ export default class PointToolBase extends ToolBase {
     this._options = options;
   }
 
-  _showPointerPosition() { this._showPtrPosition = true; }
+  get options() {return this._options;}
+
+  _showPointerPosition(value) { this._showPtrPosition = value !== false; }
 
   _isInvalidPosition(position) { throw new Error('Abstract method not implemented!'); }
 

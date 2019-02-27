@@ -1,8 +1,8 @@
 import GeometricObject from './GeometricObject.js';
 
 export default class Point extends GeometricObject {
-  constructor(x, y) {
-    super();
+  constructor(x, y, name) {
+    super(name, 'Point');
 
     if(typeof x !== 'number' || typeof y !== 'number')
       throw new TypeError("Invalid Point coordinates: "+x+", "+y);
@@ -19,7 +19,7 @@ export default class Point extends GeometricObject {
     return this._y;
   }
 
-  get hashString() {
+  get _hashString() {
     return `${this._x}_${this._y}_Point`;
   }
 
@@ -31,10 +31,6 @@ export default class Point extends GeometricObject {
         radius: stage.settings.point_radius
       });
     });
-  }
-
-  selectStyle(styles) {
-    return styles[this.hashString] || styles['Point'];
   }
 
   equals(point) {

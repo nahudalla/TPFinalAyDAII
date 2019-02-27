@@ -108,6 +108,22 @@ namespace algor {
             }
         }
 
+        const Point & getTopmostEndpoint() const {
+            if(this->from.getY() > this->to.getY()) {
+                return this->from;
+            } else {
+                return this->to;
+            }
+        }
+
+        const Point & getBottommostEndpoint() const {
+            if(this->from.getY() < this->to.getY()) {
+                return this->from;
+            } else {
+                return this->to;
+            }
+        }
+
         ComparisonResult comparePointWithIntersection(const Segment & other, const Point & point) const {
             // PRECONDICION: los segmentos se intersecan
             auto x1 = this->getFrom().getX(),
@@ -150,6 +166,22 @@ namespace algor {
                     return v1.isClockwise(v2);
                 }
             }
+        }
+
+        bool isToTheLeftAtPoint(const Segment & other, const Point & point) const {
+            // TODO: test
+            // Invierto los ejes con respecto a la recta y=x y el problema se convierte en saber si está por debajo
+            auto newThis = Segment(
+                    Point(this->from.getY(), this->from.getX()),
+                    Point(this->to.getY(), this->to.getX())
+            );
+            auto newOther = Segment(
+                    Point(other.from.getY(), other.from.getX()),
+                    Point(other.to.getY(), other.to.getX())
+            );
+            auto newPoint = Point(point.getY(), point.getX());
+
+            return newThis.isBelowAtPoint(newOther, newPoint);
         }
 
         auto squaredLength() const {

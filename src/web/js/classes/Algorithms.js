@@ -4,6 +4,9 @@ import GrahamScan from './algorithms/GrahamScan.js';
 import JarvisMarch from './algorithms/JarvisMarch.js';
 import ClosestPairOfPoints from './algorithms/ClosestPairOfPoints.js';
 import AnySegmentsIntersect from './algorithms/AnySegmentsIntersect.js';
+import SimplePolygonTriangulation from './algorithms/SimplePolygonTriangulation.js';
+import SimplePolygonPartitionIntoMonotone from './algorithms/SimplePolygonPartitionIntoMonotone.js';
+import ArtGalleryProblemOverSimplePolygon from './algorithms/ArtGalleryProblemOverSimplePolygon.js';
 
 export default class Algorithms {
   constructor(context) {
@@ -13,7 +16,10 @@ export default class Algorithms {
       grahamScan : new GrahamScan(context),
       jarvisMarch : new JarvisMarch(context),
       closestPairOfPoints : new ClosestPairOfPoints(context),
-      anySegmentsIntersect : new AnySegmentsIntersect(context)
+      anySegmentsIntersect : new AnySegmentsIntersect(context),
+      polygonTriangulation : new SimplePolygonTriangulation(context),
+      polygonPartition : new SimplePolygonPartitionIntoMonotone(context),
+      artGalleryProblem : new ArtGalleryProblemOverSimplePolygon(context)
     };
 
     this._enabledAlgorithmsChangedEvent = new Observable();
@@ -29,7 +35,7 @@ export default class Algorithms {
       Object.defineProperty(this, algorithm, {get: () => algor});
     });
   }
-  
+
   get enabledAlgorithmsChangedEvent() {
     return this._enabledAlgorithmsChangedEvent;
   }

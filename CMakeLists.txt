@@ -47,6 +47,10 @@ set(SOURCE_FILES
         src/native/cpp/test_cases/TestCasesLoader_impl/ParserShared.cpp
         src/native/cpp/logger/Logger.cpp
         src/native/cpp/logger/Logger_impl/Message.cpp
+        src/native/cpp/algor/SimplePolygon.cpp
+        src/native/cpp/algor/SimplePolygon_impl/Vertex.cpp
+        src/native/cpp/algor/SimplePolygon_impl/Edge.cpp
+        src/native/cpp/algor/SimplePolygon_impl/TreeNode.cpp
 )
 
 set(TESTS_FILES
@@ -77,6 +81,7 @@ set(WASM_SOURCE_FILES
         src/native/cpp/wasm_bindings/jarvis_march.cpp
         src/native/cpp/wasm_bindings/closest_points.cpp
         src/native/cpp/wasm_bindings/any_segments_intersect.cpp
+        src/native/cpp/wasm_bindings/simple_polygon_algorithms.cpp
 )
 
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Emscripten")

@@ -1,10 +1,11 @@
 #ifndef TPFINALAYDAI_ALGOR_POINT_HPP
 #define TPFINALAYDAI_ALGOR_POINT_HPP
 
-#ifndef __EMSCRIPTEN__
+// TODO: REMOVE COMMENT
+//#ifndef __EMSCRIPTEN__
 #include <iostream>
 #include <utility>
-#endif
+//#endif
 
 #include <algor/GeometricObject.hpp>
 
@@ -53,7 +54,8 @@ namespace algor {
             return !(rhs == *this);
         }
 
-#ifndef __EMSCRIPTEN__
+        // TODO: REMOVE COMMENT
+//#ifndef __EMSCRIPTEN__
         friend std::ostream &operator<<(std::ostream & out, Point const& point) {
             return out << point.x << " " << point.y;
         }
@@ -61,7 +63,7 @@ namespace algor {
         friend std::ostream &operator<<(std::ostream & out, std::pair<Point, Point> const& pair) {
             return out << pair.first << std::endl << pair.second;
         }
-#endif
+//#endif
     };
 }
 

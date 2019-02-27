@@ -2,7 +2,7 @@ import GeometricObject from './GeometricObject.js';
 
 export default class Arrow extends GeometricObject {
   constructor(from, to, name) {
-    super(name);
+    super(name, 'Arrow');
 
     this._from = from;
     this._to = to;
@@ -43,10 +43,6 @@ export default class Arrow extends GeometricObject {
 
       return group;
     });
-  }
-
-  selectStyle(styles) {
-    return styles['Arrow'];
   }
 }
 

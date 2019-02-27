@@ -1,7 +1,7 @@
 {
   "name": "tpfinalaydaii",
   "productName": "tpfinalaydaii",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Herramienta para usar algoritmos geométricos básicos.",
   "repository": "https://github.com/nahudalla/TPFinalAyDAII.git",
   "scripts": {

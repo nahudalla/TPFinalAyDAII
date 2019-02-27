@@ -2,6 +2,7 @@
 #define TPFINALAYDAI_ALGOR_RBTREE_HPP
 
 #include <algorithm>
+#include <functional>
 
 #include <algor/RBTree_impl/Color.hpp>
 #include <algor/RBTree_impl/Node.hpp>
@@ -9,6 +10,7 @@
 #include <algor/RBTree_impl/Iterator.hpp>
 #include <algor/RBTree_impl/ConstIterator.hpp>
 #include <algor/Comparator.hpp>
+#include <algor/UnaryComparator.hpp>
 
 namespace algor {
     template <typename T>
@@ -47,10 +49,18 @@ namespace algor {
             return *this;
         }
         ~RBTree() {
+            this->clear();
+        }
+
+        void clear() {
             if(!this->root->isNil()) {
                 delete this->root;
                 this->root = Node::Nil::get();
             }
+        }
+
+        bool isEmpty() const {
+            return this->root->isNil();
         }
 
         auto size() const {
@@ -76,6 +86,14 @@ namespace algor {
         }
         auto search(T const& value) {
             return Iterator(this->root->search(value, this->comparator));
+        }
+
+        auto findMaxLessThan(UnaryComparator<T> const& comparator) const {
+            return ConstIterator(this->root->findMaxLessThan(comparator));
+        }
+
+        auto findMaxLessThan(UnaryComparator<T> const& comparator) {
+            return Iterator(this->root->findMaxLessThan(comparator));
         }
 
         auto insert(T value) {

@@ -3,7 +3,7 @@ import GeometricObject from './GeometricObject.js';
 
 export default class Segment extends GeometricObject {
   constructor(from, to, name) {
-    super(name);
+    super(name, 'Segment');
 
     if(!(from instanceof Point && to instanceof Point)) {
       throw new TypeError("Invalid types for segment start and/or end point(s).");
@@ -19,10 +19,6 @@ export default class Segment extends GeometricObject {
 
   get _hashString() {
     return `${this._from.hashString}_${this._to.hashString}_Segment`;
-  }
-
-  selectStyle(styles) {
-    return styles['Segment'];
   }
 
   toPaperObject(stage, scale, applyStyles) {

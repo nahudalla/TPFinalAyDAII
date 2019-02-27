@@ -131,6 +131,10 @@ namespace algor {
             return *this;
         }
         ~List() {
+            this->clear();
+        }
+
+        void clear() {
             while (this->first != nullptr) {
                 auto *tmp = this->first;
                 this->first = this->first->next;

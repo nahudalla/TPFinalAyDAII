@@ -176,6 +176,7 @@ void async function main() {
   );
 
   console.log('Done');
+  console.log('Not an actual error, but PLEASE MAKE SURE YOU COMPILED A RELEASE VERSION OF THE WASM NATIVE MODULE BEFORE EXECUTING THIS COMMAND');
 }();
 
 function generatePackagePath(platform) {

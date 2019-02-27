@@ -2,7 +2,7 @@ import GeometricObject from './GeometricObject.js';
 
 export default class GOGroup extends GeometricObject {
   constructor(elements, name) {
-    super(name);
+    super(name, 'GOGroup');
 
     if(!Array.isArray(elements) || !elements.length) {
       throw new TypeError('Parameter "elements" must be an Array of GeometricObject.');
